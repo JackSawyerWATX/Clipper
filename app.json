@@ -1,29 +1,61 @@
 {
   "expo": {
-    "name": "ShippingSaaS",
-    "slug": "ShippingSaaS",
+    "name": "Clipper Aviation Logistics",
+    "slug": "clipper-aviation",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "platforms": ["ios", "android", "web"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#667eea"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.clipper.aviation.logistics"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#667eea"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.clipper.aviation.logistics"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "static",
+      "build": {
+        "babel": {
+          "include": ["@expo/vector-icons"]
+        }
+      },
+      "meta": {
+        "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no",
+        "themeColor": "#2196F3"
+      },
+      "config": {
+        "firebase": {
+          "measurementId": "G-XXXXXXXXXX"
+        }
+      }
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "clipper-aviation-logistics"
+      }
+    },
+    "owner": "clipper-aviation",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ]
   }
 }

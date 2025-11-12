@@ -1,18 +1,67 @@
 {
-  "name": "shippingsaas",
+  "name": "clipper-aviation-logistics",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Professional aviation logistics and parts management system",
+  "main": "node_modules/expo/AppEntry.js",
+  "private": true,
   "scripts": {
     "start": "expo start",
+    "start:web": "expo start --web",
+    "start:desktop": "expo start --web --port 3000",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "expo build",
+    "build:web": "expo build:web",
+    "build:desktop": "expo build:web --platform web",
+    "eject": "expo eject",
+    "test": "jest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "serve": "serve web-build",
+    "db:migrate": "node scripts/migrate.js migrate",
+    "db:migrate:clear": "node scripts/migrate.js migrate --clear",
+    "db:dry-run": "node scripts/migrate.js dry-run",
+    "db:health": "node scripts/migrate.js health",
+    "db:clear": "node scripts/migrate.js clear"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.3",
     "expo": "~54.0.23",
     "expo-status-bar": "~3.0.8",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
+    "mongodb": "^7.0.0",
+    "mongoose": "^8.19.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-native": "0.81.5",
+    "react-native-web": "^0.21.2"
   },
-  "private": true
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "babel-preset-expo": "~54.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "prettier": "^3.0.0",
+    "serve": "^14.2.0"
+  },
+  "keywords": [
+    "aviation",
+    "logistics",
+    "parts",
+    "inventory",
+    "shipping",
+    "react-native",
+    "expo",
+    "desktop",
+    "web",
+    "mobile"
+  ],
+  "author": {
+    "name": "Clipper Aviation",
+    "email": "support@clipper-aviation.com"
+  },
+  "license": "MIT",
+  "homepage": "https://clipper-aviation.com"
 }

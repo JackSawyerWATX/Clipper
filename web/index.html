@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="theme-color" content="#2196F3" />
+  
+  <!-- Desktop Specific Meta Tags -->
+  <meta name="application-name" content="Clipper Aviation Logistics" />
+  <meta name="description" content="Professional aviation logistics and parts management system for desktop and mobile" />
+  <meta name="keywords" content="aviation, logistics, parts, inventory, shipping, aircraft, desktop, web app" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Clipper Aviation Logistics" />
+  <meta property="og:description" content="Professional aviation logistics management system" />
+  <meta property="og:site_name" content="Clipper" />
+  
+  <!-- Desktop PWA Configuration -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Clipper" />
+  
+  <!-- Desktop Favicon and Icons -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  
+  <!-- Desktop CSS -->
+  <link rel="stylesheet" href="./assets/desktop.css" />
+  <link rel="stylesheet" href="./web.css" />
+  
+  <!-- Desktop Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <title>Clipper Aviation Logistics</title>
+  
+  <style>
+    /* Critical CSS for fast loading */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      overflow-x: hidden;
+    }
+    
+    /* Loading Screen */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      color: white;
+    }
+    
+    #loading-screen h1 {
+      font-size: 48px;
+      margin: 0 0 20px 0;
+      font-weight: 300;
+    }
+    
+    #loading-screen p {
+      font-size: 18px;
+      margin: 0 0 40px 0;
+      opacity: 0.8;
+    }
+    
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Hide loading screen when app loads */
+    #root:not(:empty) ~ #loading-screen {
+      display: none;
+    }
+    
+    /* Desktop optimizations */
+    @media (min-width: 1024px) {
+      body {
+        cursor: default;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+      
+      /* Custom scrollbars for desktop */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <h1>✈️ Clipper</h1>
+    <p>Aviation Logistics Platform</p>
+    <div class="loading-spinner"></div>
+  </div>
+  
+  <!-- React App Root -->
+  <div id="root"></div>
+  
+  <!-- Desktop Enhancement Scripts -->
+  <script>
+    // Desktop keyboard shortcuts handler
+    document.addEventListener('DOMContentLoaded', function() {
+      // Remove loading screen when app is ready
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.addedNodes.length) {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+              setTimeout(() => {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                  loadingScreen.remove();
+                }, 500);
+              }, 1000);
+            }
+            observer.disconnect();
+          }
+        });
+      });
+      
+      observer.observe(document.getElementById('root'), {
+        childList: true,
+        subtree: true
+      });
+      
+      // Desktop keyboard shortcuts
+      document.addEventListener('keydown', function(event) {
+        // Prevent default browser shortcuts that conflict with app
+        if (event.ctrlKey || event.metaKey) {
+          switch(event.key) {
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+              event.preventDefault();
+              // These will be handled by the React app
+              break;
+            case 'f':
+              if (!event.shiftKey) {
+                event.preventDefault();
+                // Focus search if available
+                const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]');
+                if (searchInput) {
+                  searchInput.focus();
+                }
+              }
+              break;
+          }
+        }
+        
+        // ESC key handling
+        if (event.key === 'Escape') {
+          // Close modals, dropdowns, etc.
+          const modals = document.querySelectorAll('[data-modal], .modal-overlay');
+          modals.forEach(modal => {
+            if (modal.style.display !== 'none') {
+              const closeBtn = modal.querySelector('[data-close], .close-button');
+              if (closeBtn) closeBtn.click();
+            }
+          });
+        }
+      });
+      
+      // Desktop context menu prevention on certain elements
+      document.addEventListener('contextmenu', function(event) {
+        const target = event.target;
+        if (target.matches('.no-context-menu, button, input, select, textarea')) {
+          event.preventDefault();
+        }
+      });
+      
+      // Desktop drag and drop prevention for images and links
+      document.addEventListener('dragstart', function(event) {
+        if (event.target.matches('img, a')) {
+          event.preventDefault();
+        }
+      });
+      
+      // Desktop window resize optimization
+      let resizeTimeout;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+          // Dispatch custom event for React components to handle
+          window.dispatchEvent(new CustomEvent('desktop-resize', {
+            detail: {
+              width: window.innerWidth,
+              height: window.innerHeight,
+              isDesktop: window.innerWidth >= 1024
+            }
+          }));
+        }, 150);
+      });
+      
+      // Desktop performance monitoring
+      if (window.performance && window.performance.mark) {
+        window.performance.mark('desktop-app-start');
+        
+        window.addEventListener('load', function() {
+          window.performance.mark('desktop-app-loaded');
+          window.performance.measure(
+            'desktop-app-load-time', 
+            'desktop-app-start', 
+            'desktop-app-loaded'
+          );
+        });
+      }
+      
+      // Desktop notification permission request
+      if ('Notification' in window && window.innerWidth >= 1024) {
+        if (Notification.permission === 'default') {
+          setTimeout(() => {
+            Notification.requestPermission().then(function(permission) {
+              console.log('Desktop notifications:', permission);
+            });
+          }, 5000);
+        }
+      }
+    });
+    
+    // Desktop error handling
+    window.addEventListener('error', function(event) {
+      console.error('Desktop App Error:', event.error);
+      // Could send to error reporting service
+    });
+    
+    window.addEventListener('unhandledrejection', function(event) {
+      console.error('Unhandled Promise Rejection:', event.reason);
+      // Could send to error reporting service
+    });
+  </script>
+  
+  <!-- Service Worker Registration for Desktop PWA -->
+  <script>
+    if ('serviceWorker' in navigator && window.innerWidth >= 1024) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(registration) {
+            console.log('Desktop SW registered: ', registration);
+          })
+          .catch(function(registrationError) {
+            console.log('Desktop SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

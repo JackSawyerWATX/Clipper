@@ -1,0 +1,322 @@
+/* Web-specific CSS overrides for React Native Web */
+
+/* Ensure proper web layout */
+#root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Fix React Native Web text selection issues */
+* {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Buttons should not allow text selection */
+button,
+[role="button"],
+.touchable-opacity,
+[data-touchable="true"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Fix ScrollView web behavior */
+.scroll-view,
+[data-rnw-scrollview="true"] {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Web-specific hover effects for touchable elements */
+.touchable-opacity:hover,
+[role="button"]:hover {
+  opacity: 0.7;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+/* Fix TextInput focus states for web */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+textarea {
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: 2px solid #1976D2;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+/* Web accessibility improvements */
+button:focus,
+[role="button"]:focus {
+  outline: 2px solid #2196F3;
+  outline-offset: 2px;
+}
+
+/* Fix Image component for web */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Loading states */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced Navigation Visibility */
+.bottom-nav,
+[data-testid="bottom-nav"] {
+  background: white !important;
+  border-top: 2px solid #e0e0e0 !important;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;
+  min-height: 70px !important;
+  z-index: 1000 !important;
+}
+
+.top-nav,
+[data-testid="top-nav"] {
+  background: white !important;
+  border-bottom: 2px solid #e0e0e0 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+  min-height: 60px !important;
+  z-index: 1000 !important;
+}
+
+/* Enhanced Tab Buttons */
+.nav-item,
+.top-nav-item,
+[data-testid*="nav-item"] {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  border-radius: 8px !important;
+  margin: 4px !important;
+  padding: 12px 16px !important;
+}
+
+.nav-item:hover,
+.top-nav-item:hover,
+[data-testid*="nav-item"]:hover {
+  background-color: #f0f8ff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
+}
+
+.active-nav-item,
+.active-top-nav-item,
+[data-testid*="active"] {
+  background: linear-gradient(135deg, #2196F3, #1976D2) !important;
+  color: white !important;
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3) !important;
+}
+
+/* Ensure text is readable */
+.nav-text,
+.top-nav-text,
+[data-testid*="nav-text"] {
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  text-align: center !important;
+}
+
+/* Web-specific responsive helpers */
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tablet-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Fix flex layout issues on web */
+.flex-container {
+  display: flex;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* Web-specific modal overlays */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Web performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Print styles for web */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #ffffff;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  * {
+    border-color: currentColor !important;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Web-specific fixes for React Native Web components */
+
+/* Fix View component display issues */
+div[data-rnw="true"] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fix Text component line-height */
+span[data-rnw="true"] {
+  line-height: inherit;
+}
+
+/* Fix TouchableOpacity web cursor */
+div[role="button"] {
+  cursor: pointer;
+}
+
+/* Fix StatusBar component for web (should be hidden) */
+.status-bar {
+  display: none;
+}
+
+/* Web-specific table styles for data display */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+.data-table th,
+.data-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.data-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Web context menu styling */
+.context-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 4px 0;
+  z-index: 1001;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.context-menu-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Ensure proper text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Clipper Aviation - Offline</title>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .offline-container {
+      max-width: 500px;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .offline-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+    
+    .offline-title {
+      font-size: 32px;
+      margin: 0 0 16px 0;
+      font-weight: 600;
+    }
+    
+    .offline-subtitle {
+      font-size: 18px;
+      margin: 0 0 32px 0;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+    
+    .offline-features {
+      text-align: left;
+      margin: 32px 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .offline-features li {
+      padding: 8px 0;
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    
+    .offline-features li:before {
+      content: "✓ ";
+      color: #4CAF50;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    
+    .retry-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 8px;
+    }
+    
+    .retry-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+    
+    .cached-data-button {
+      background: #2196F3;
+      border: none;
+      color: white;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0 8px;
+    }
+    
+    .cached-data-button:hover {
+      background: #1976D2;
+      transform: translateY(-2px);
+    }
+    
+    .connection-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(244, 67, 54, 0.9);
+      color: white;
+    }
+    
+    .connection-status.online {
+      background: rgba(76, 175, 80, 0.9);
+    }
+    
+    @media (max-width: 768px) {
+      .offline-container {
+        margin: 20px;
+        padding: 30px 20px;
+      }
+      
+      .offline-title {
+        font-size: 28px;
+      }
+      
+      .offline-subtitle {
+        font-size: 16px;
+      }
+      
+      .retry-button,
+      .cached-data-button {
+        display: block;
+        width: 100%;
+        margin: 8px 0;
+      }
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="connection-status" id="connectionStatus">
+    📡 Offline
+  </div>
+  
+  <div class="offline-container">
+    <div class="offline-icon pulse">✈️</div>
+    
+    <h1 class="offline-title">Clipper Aviation</h1>
+    
+    <p class="offline-subtitle">
+      You're currently offline, but you can still access some features with cached data.
+    </p>
+    
+    <ul class="offline-features">
+      <li>View recently loaded inventory</li>
+      <li>Access cached order history</li>
+      <li>Browse supplier information</li>
+      <li>View dashboard statistics</li>
+    </ul>
+    
+    <div style="margin-top: 32px;">
+      <button class="retry-button" onclick="retryConnection()">
+        🔄 Retry Connection
+      </button>
+      
+      <button class="cached-data-button" onclick="loadCachedData()">
+        📦 View Cached Data
+      </button>
+    </div>
+    
+    <p style="margin-top: 32px; font-size: 14px; opacity: 0.7;">
+      Changes made offline will be synchronized when you're back online.
+    </p>
+  </div>
+  
+  <script>
+    // Check online status
+    function updateConnectionStatus() {
+      const statusElement = document.getElementById('connectionStatus');
+      if (navigator.onLine) {
+        statusElement.textContent = '🟢 Online';
+        statusElement.classList.add('online');
+        
+        // Auto-reload when back online
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      } else {
+        statusElement.textContent = '📡 Offline';
+        statusElement.classList.remove('online');
+      }
+    }
+    
+    // Listen for online/offline events
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+    
+    // Initial status check
+    updateConnectionStatus();
+    
+    // Retry connection function
+    function retryConnection() {
+      const button = document.querySelector('.retry-button');
+      const originalText = button.textContent;
+      
+      button.textContent = '🔄 Checking...';
+      button.disabled = true;
+      
+      // Test connection with a simple fetch
+      fetch('/', {
+        method: 'HEAD',
+        cache: 'no-cache'
+      })
+      .then(() => {
+        button.textContent = '✅ Connected!';
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      })
+      .catch(() => {
+        button.textContent = '❌ Still Offline';
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 2000);
+      });
+    }
+    
+    // Load cached data function
+    function loadCachedData() {
+      const button = document.querySelector('.cached-data-button');
+      button.textContent = '📦 Loading...';
+      button.disabled = true;
+      
+      // Try to load the main app with cached resources
+      setTimeout(() => {
+        try {
+          // Navigate to the main app - service worker will serve cached version
+          window.location.href = '/?offline=true';
+        } catch (error) {
+          button.textContent = '❌ No Cached Data';
+          setTimeout(() => {
+            button.textContent = '📦 View Cached Data';
+            button.disabled = false;
+          }, 2000);
+        }
+      }, 1000);
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'r' || event.key === 'R') {
+        event.preventDefault();
+        retryConnection();
+      } else if (event.key === 'c' || event.key === 'C') {
+        event.preventDefault();
+        loadCachedData();
+      } else if (event.key === 'Escape') {
+        // Go to main app anyway
+        window.location.href = '/';
+      }
+    });
+    
+    // Auto-retry connection every 30 seconds
+    setInterval(() => {
+      if (!navigator.onLine) {
+        fetch('/', {
+          method: 'HEAD',
+          cache: 'no-cache'
+        })
+        .then(() => {
+          updateConnectionStatus();
+        })
+        .catch(() => {
+          // Still offline
+        });
+      }
+    }, 30000);
+    
+    // Show notification if notifications are supported
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Clipper Aviation - Offline Mode', {
+        body: 'You\'re offline. Cached data is available for viewing.',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+        tag: 'offline-notification'
+      });
+    }
+  </script>
+</body>
+</html>

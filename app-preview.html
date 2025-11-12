@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping SaaS - App Preview</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .phone-frame {
+            max-width: 375px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 8px solid #333;
+        }
+        .status-bar {
+            background: #000;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .screen {
+            padding: 20px;
+            min-height: 600px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2563eb;
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            color: #6b7280;
+            margin: 5px 0 0 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .stat-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .stat-card p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .recent-activity {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        .recent-activity h3 {
+            margin: 0 0 15px 0;
+            color: #1f2937;
+        }
+        .activity-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .tab-bar {
+            display: flex;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            padding: 15px 0;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .tab.active {
+            color: #2563eb;
+            font-weight: bold;
+        }
+        .orders { color: #f59e0b; }
+        .processing { color: #3b82f6; }
+        .delivered { color: #10b981; }
+        .revenue { color: #10b981; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #1f2937; margin-bottom: 30px;">
+        📦 Your React Native SaaS Shipping App Preview
+    </h1>
+    
+    <div class="phone-frame">
+        <div class="status-bar">9:41 AM • 📶 📶📶📶 🔋98%</div>
+        
+        <div class="screen">
+            <div class="header">
+                <h1>Welcome back, User!</h1>
+                <p>Here's your shipping overview</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 class="orders">1,247</h3>
+                    <p>Total Orders</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="processing">23</h3>
+                    <p>Pending</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="delivered">156</h3>
+                    <p>Shipped</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="revenue">$125,679</h3>
+                    <p>Revenue</p>
+                </div>
+            </div>
+            
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <div class="activity-item">📦 Order #1247 shipped via UPS</div>
+                <div class="activity-item">💰 Payment received for Order #1246</div>
+                <div class="activity-item">🚚 New shipment created for Order #1245</div>
+                <div class="activity-item">📋 Inventory updated for Product SKU-123</div>
+            </div>
+        </div>
+        
+        <div class="tab-bar">
+            <div class="tab active">
+                📊<br>Dashboard
+            </div>
+            <div class="tab">
+                📦<br>Orders
+            </div>
+            <div class="tab">
+                📋<br>Inventory
+            </div>
+            <div class="tab">
+                🚚<br>Tracking
+            </div>
+            <div class="tab">
+                👤<br>Profile
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; color: #6b7280;">
+        <p><strong>This is a preview of your React Native app!</strong></p>
+        <p>To see it running on a device:</p>
+        <ol style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <li>Install Android Studio</li>
+            <li>Create a virtual device (emulator)</li>
+            <li>Run <code>npm run android</code></li>
+        </ol>
+        <p style="margin-top: 20px;">
+            <strong>Framework Features Ready:</strong><br>
+            ✅ Authentication • ✅ Order Management • ✅ Dashboard<br>
+            ✅ Navigation • ✅ State Management • ✅ API Services
+        </p>
+    </div>
+</body>
+</html>
