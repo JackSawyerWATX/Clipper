@@ -11,7 +11,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "npx expo export --platform web",
+    "build": "npx expo export --platform web --output-dir web-build",
     "build:web": "expo build:web",
     "build:desktop": "expo build:web --platform web",
     "eject": "expo eject",
