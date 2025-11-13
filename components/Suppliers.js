@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { suppliersData, getSupplierStats, getTopSuppliersByOrders } from '../data/suppliersData';
+import databaseAdapter from '../services/DatabaseAdapter';
 
 const Suppliers = () => {
-  const [suppliers, setSuppliers] = useState(suppliersData);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [specializationFilter, setSpecializationFilter] = useState('All');
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
@@ -19,6 +21,18 @@ const Suppliers = () => {
     deliveryTime: '',
     certifications: ''
   });
+
+  React.useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    databaseAdapter.getSuppliers({ sort: { companyName: 1 } }).then(data => {
+      if (mounted) {
+        setSuppliers(data);
+        setLoading(false);
+      }
+    }).catch(() => setLoading(false));
+    return () => { mounted = false; };
+  }, []);
 
   const specializations = [
     'All', 
@@ -88,6 +102,14 @@ const Suppliers = () => {
       setShowAddSupplierModal(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <Text style={styles.loaderText}>Loading suppliers...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.content}>
@@ -669,6 +691,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  loaderText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
 

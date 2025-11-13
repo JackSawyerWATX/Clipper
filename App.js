@@ -102,17 +102,23 @@ export default function App() {
 
   const handleLoginSuccess = (authData) => {
     try {
+      console.log('🔐 Login success handler called with:', authData);
+      
       // Extract user from authData - handle both direct user object and nested structure
       const user = authData.user || authData;
+      console.log('👤 Extracted user:', user);
       
       setCurrentUser(user);
       setIsAuthenticated(true);
       setIsSecureSession(true);
       
+      console.log('✅ Authentication state updated - isAuthenticated: true');
+      
       // Update web title after login
       if (Platform.OS === 'web') {
         const displayName = user.name || user.username || 'User';
         WebPlatform.setWebTitle(`Clipper Aviation Logistics - ${displayName}`);
+        console.log('🌐 Web title updated for:', displayName);
       }
       
       // Try security manager but don't block on it
@@ -290,6 +296,7 @@ export default function App() {
 
   // Show login screen if not authenticated
   if (!isAuthenticated) {
+    console.log('🔒 Rendering login screen - isAuthenticated:', isAuthenticated);
     return (
       <View style={styles.container}>
         <Login onLoginSuccess={handleLoginSuccess} />
@@ -297,6 +304,8 @@ export default function App() {
       </View>
     );
   }
+
+  console.log('🏠 Rendering main app - isAuthenticated:', isAuthenticated, 'activeTab:', activeTab);
 
   return (
     <View style={styles.container}>

@@ -158,7 +158,248 @@ export const customersData = [
       directPhone: '+1 (617) 555-0413',
       email: 'emily.clark@coastalair.com'
     }
-  }
+  },
+  // --- PNW and Nearby Customers ---
+  {
+    id: 'CUST009',
+    companyName: 'Spokane Aero Logistics',
+    contactName: 'Tyler Benson',
+    email: 'tbenson@spokaneaero.com',
+    phone: '+1 (509) 555-1001',
+    address: '2000 Airway Heights Blvd, Spokane, WA 99224',
+    customerSince: '2024-01-10',
+    totalOrders: 7,
+    totalSpent: 67000.00,
+    status: 'Active',
+    creditLimit: 18000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Megan Price',
+      title: 'Logistics Manager',
+      directPhone: '+1 (509) 555-1002',
+      email: 'mprice@spokaneaero.com'
+    }
+  },
+  {
+    id: 'CUST010',
+    companyName: 'Boise Jet Center',
+    contactName: 'Derek Hall',
+    email: 'dhall@boisejet.com',
+    phone: '+1 (208) 555-1101',
+    address: '3500 Aviation Way, Boise, ID 83705',
+    customerSince: '2023-06-18',
+    totalOrders: 5,
+    totalSpent: 42000.00,
+    status: 'Active',
+    creditLimit: 12000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Samantha Lee',
+      title: 'Parts Supervisor',
+      directPhone: '+1 (208) 555-1102',
+      email: 'slee@boisejet.com'
+    }
+  },
+  {
+    id: 'CUST011',
+    companyName: 'Missoula Mountain Air',
+    contactName: 'Brandon Cook',
+    email: 'bcook@mountainair.com',
+    phone: '+1 (406) 555-1201',
+    address: '8000 Aviation Ave, Missoula, MT 59808',
+    customerSince: '2024-03-05',
+    totalOrders: 3,
+    totalSpent: 21000.00,
+    status: 'Active',
+    creditLimit: 9000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Rachel Adams',
+      title: 'Maintenance Lead',
+      directPhone: '+1 (406) 555-1202',
+      email: 'radams@mountainair.com'
+    }
+  },
+  {
+    id: 'CUST012',
+    companyName: 'Salt Lake Aero Services',
+    contactName: 'Ethan Wright',
+    email: 'ewright@slaero.com',
+    phone: '+1 (801) 555-1301',
+    address: '4000 W Terminal Dr, Salt Lake City, UT 84122',
+    customerSince: '2023-11-12',
+    totalOrders: 6,
+    totalSpent: 51000.00,
+    status: 'Active',
+    creditLimit: 15000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Olivia Carter',
+      title: 'Procurement Lead',
+      directPhone: '+1 (801) 555-1302',
+      email: 'ocarter@slaero.com'
+    }
+  },
+  {
+    id: 'CUST013',
+    companyName: 'Denver Skyworks',
+    contactName: 'Logan Evans',
+    email: 'levans@denverskyworks.com',
+    phone: '+1 (720) 555-1401',
+    address: '1000 Skyport Rd, Denver, CO 80249',
+    customerSince: '2022-10-21',
+    totalOrders: 9,
+    totalSpent: 83000.00,
+    status: 'Active',
+    creditLimit: 20000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Paige Morgan',
+      title: 'Fleet Coordinator',
+      directPhone: '+1 (720) 555-1402',
+      email: 'pmorgan@denverskyworks.com'
+    }
+  },
+  {
+    id: 'CUST014',
+    companyName: 'San Francisco Jet Group',
+    contactName: 'Ava Kim',
+    email: 'akim@sfjetgroup.com',
+    phone: '+1 (415) 555-1501',
+    address: '600 S Airport Blvd, San Francisco, CA 94128',
+    customerSince: '2024-02-14',
+    totalOrders: 4,
+    totalSpent: 39000.00,
+    status: 'Active',
+    creditLimit: 11000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Henry Foster',
+      title: 'Parts Manager',
+      directPhone: '+1 (415) 555-1502',
+      email: 'hfoster@sfjetgroup.com'
+    }
+  },
+  {
+    id: 'CUST015',
+    companyName: 'Billings Aero Support',
+    contactName: 'Mason Reed',
+    email: 'mreed@billingsaero.com',
+    phone: '+1 (406) 555-1601',
+    address: '1500 Terminal Cir, Billings, MT 59105',
+    customerSince: '2023-08-30',
+    totalOrders: 2,
+    totalSpent: 12000.00,
+    status: 'Active',
+    creditLimit: 6000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Ella Brooks',
+      title: 'Customer Service Lead',
+      directPhone: '+1 (406) 555-1602',
+      email: 'ebrooks@billingsaero.com'
+    }
+  },
+  {
+    id: 'CUST016',
+    companyName: 'Idaho Falls Aviation',
+    contactName: 'Lucas Perry',
+    email: 'lperry@ifaviation.com',
+    phone: '+1 (208) 555-1701',
+    address: '2140 N Skyline Dr, Idaho Falls, ID 83402',
+    customerSince: '2024-04-02',
+    totalOrders: 3,
+    totalSpent: 18000.00,
+    status: 'Active',
+    creditLimit: 7000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Zoe Bennett',
+      title: 'Parts Coordinator',
+      directPhone: '+1 (208) 555-1702',
+      email: 'zbennett@ifaviation.com'
+    }
+  },
+  {
+    id: 'CUST017',
+    companyName: 'Cheyenne Regional Air',
+    contactName: 'Jack Turner',
+    email: 'jturner@cheyennair.com',
+    phone: '+1 (307) 555-1801',
+    address: '4020 Airport Pkwy W, Cheyenne, WY 82001',
+    customerSince: '2023-07-19',
+    totalOrders: 2,
+    totalSpent: 9500.00,
+    status: 'Active',
+    creditLimit: 5000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Madison Scott',
+      title: 'Maintenance Supervisor',
+      directPhone: '+1 (307) 555-1802',
+      email: 'mscott@cheyennair.com'
+    }
+  },
+  {
+    id: 'CUST018',
+    companyName: 'Reno Air Charter',
+    contactName: 'Chloe King',
+    email: 'cking@renoaircharter.com',
+    phone: '+1 (775) 555-1901',
+    address: '655 S Rock Blvd, Reno, NV 89502',
+    customerSince: '2022-12-11',
+    totalOrders: 4,
+    totalSpent: 22000.00,
+    status: 'Active',
+    creditLimit: 8000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Benjamin Rivera',
+      title: 'Charter Manager',
+      directPhone: '+1 (775) 555-1902',
+      email: 'brivera@renoaircharter.com'
+    }
+  },
+  {
+    id: 'CUST019',
+    companyName: 'Twin Falls Aero',
+    contactName: 'Aiden Hughes',
+    email: 'ahughes@twinfallsaero.com',
+    phone: '+1 (208) 555-2001',
+    address: '492 Airport Loop, Twin Falls, ID 83301',
+    customerSince: '2023-05-23',
+    totalOrders: 1,
+    totalSpent: 6000.00,
+    status: 'Active',
+    creditLimit: 4000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Charlotte Reed',
+      title: 'Office Manager',
+      directPhone: '+1 (208) 555-2002',
+      email: 'creed@twinfallsaero.com'
+    }
+  },
+  {
+    id: 'CUST020',
+    companyName: 'Colorado Springs Jet Center',
+    contactName: 'Gabriel Price',
+    email: 'gprice@csjetcenter.com',
+    phone: '+1 (719) 555-2101',
+    address: '1575 Aviation Way, Colorado Springs, CO 80916',
+    customerSince: '2024-05-01',
+    totalOrders: 2,
+    totalSpent: 10500.00,
+    status: 'Active',
+    creditLimit: 5000.00,
+    paymentTerms: 'Net 30',
+    primaryContact: {
+      name: 'Layla Simmons',
+      title: 'Customer Service Rep',
+      directPhone: '+1 (719) 555-2102',
+      email: 'lsimmons@csjetcenter.com'
+    }
+  },
 ];
 
 // Helper functions for customer data

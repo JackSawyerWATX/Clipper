@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Dimensions } from 'react-native';
 import { getPartImage } from '../utils/PartImageMapper.js';
-import { DatabaseService } from '../services/DatabaseService.js';
+import DatabaseAdapter from '../services/DatabaseAdapter.js';
 
 // Initialize empty inventory - will be loaded from MongoDB
 let aircraftPartsInventory = [];
@@ -41,27 +41,10 @@ const Inventory = () => {
         setLoading(true);
         setError(null);
         
-        // First try to load from MongoDB (this will work in Node.js environment)
-        try {
-          const inventoryData = await DatabaseService.getAll('inventory');
-          if (inventoryData && inventoryData.length > 0) {
-            setInventory(inventoryData);
-            console.log('✅ Loaded inventory from MongoDB:', inventoryData.length, 'items');
-            return;
-          }
-        } catch (dbError) {
-          console.warn('MongoDB not accessible from client, falling back to static data:', dbError.message);
-        }
-        
-        // Fallback to static data (for client-side execution)
-        try {
-          const inventoryModule = await import('../data/aircraftInventory.js');
-          const staticInventory = inventoryModule.aircraftPartsInventory || [];
-          setInventory(staticInventory);
-          console.log('✅ Loaded inventory from static data:', staticInventory.length, 'items');
-        } catch (staticError) {
-          throw new Error('Could not load inventory from either MongoDB or static files');
-        }
+        // Load using DatabaseAdapter (handles MongoDB/static fallback automatically)
+        const inventoryData = await DatabaseAdapter.getInventory();
+        setInventory(inventoryData || []);
+        console.log('✅ Loaded inventory:', inventoryData?.length || 0, 'items');
         
       } catch (err) {
         console.error('Error loading inventory:', err);
@@ -101,17 +84,10 @@ const Inventory = () => {
         lastUpdated: new Date().toISOString().split('T')[0]
       };
 
-      // Try to save to MongoDB first (will work in Node.js environment)
-      try {
-        const savedPart = await DatabaseService.create('inventory', part);
-        setInventory(prev => [savedPart, ...prev]);
-        alert('Part added successfully to MongoDB!');
-      } catch (dbError) {
-        // Fallback to local state only (client-side limitation)
-        console.warn('Could not save to MongoDB from client, adding to local state only:', dbError.message);
-        setInventory(prev => [part, ...prev]);
-        alert('Part added to local inventory! Note: To persist to MongoDB, you need an API server.');
-      }
+      // Save using DatabaseAdapter (handles MongoDB/session storage automatically)
+      const savedPart = await DatabaseAdapter.createInventoryItem(part);
+      setInventory(prev => [savedPart, ...prev]);
+      alert('Part added successfully!');
     } catch (error) {
       console.error('Error adding part:', error);
       alert('Failed to add part. Please try again.');
