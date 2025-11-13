@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
 import { customersData, getCustomerStats, getTopCustomersBySpending } from '../data/customersData';
+import DatabaseAdapter from '../services/DatabaseAdapter';
 
 const Customers = () => {
   const [customers, setCustomers] = useState(customersData);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -21,35 +24,82 @@ const Customers = () => {
 
   const customerStatuses = ['All', 'Active', 'Inactive'];
 
-  const handleAddCustomer = () => {
+  // Load customers from database
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('Loading customers from database...');
+
+        // Initialize DatabaseAdapter first
+        await DatabaseAdapter.initialize();
+
+        const dbCustomers = await DatabaseAdapter.getCustomers();
+        console.log('Loaded customers:', dbCustomers);
+
+        if (dbCustomers && Array.isArray(dbCustomers) && dbCustomers.length > 0) {
+          setCustomers(dbCustomers);
+        } else {
+          // Always show all static customers if DB is empty
+          setCustomers(customersData);
+          console.log('No customers found in database, using all static customers');
+        }
+      } catch (error) {
+        console.error('Failed to load customers from database:', error);
+        setError(`Failed to load customers: ${error.message}`);
+        // Always show all static customers if DB fails
+        setCustomers(customersData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCustomers();
+  }, []);
+
+  const handleAddCustomer = async () => {
     if (!newCustomer.companyName.trim() || !newCustomer.contactName.trim() || !newCustomer.email.trim()) {
       alert('Please fill in all required fields (Company Name, Contact Name, Email)');
       return;
     }
 
-    const customer = {
-      id: Date.now().toString(),
-      ...newCustomer,
-      status: 'Active',
-      totalOrders: 0,
-      totalSpent: 0,
-      createdDate: new Date().toISOString().split('T')[0],
-      lastOrderDate: null
-    };
+    try {
+      const customer = {
+        id: Date.now().toString(),
+        customerId: `CUST-${Date.now()}`,
+        ...newCustomer,
+        status: 'Active',
+        totalOrders: 0,
+        totalSpent: 0,
+        createdDate: new Date().toISOString().split('T')[0],
+        lastOrderDate: null
+      };
 
-    setCustomers(prev => [customer, ...prev]);
-    setNewCustomer({
-      companyName: '',
-      contactName: '',
-      email: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: 'USA'
-    });
-    setShowAddModal(false);
+      // Save to database
+      const savedCustomer = await DatabaseAdapter.createCustomer(customer);
+      setCustomers(prev => [savedCustomer, ...prev]);
+      
+      // Reset form
+      setNewCustomer({
+        companyName: '',
+        contactName: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'USA'
+      });
+      setShowAddModal(false);
+      
+      alert('Customer added successfully!');
+      
+    } catch (error) {
+      console.error('Failed to add customer:', error);
+      alert(`Failed to add customer: ${error.message}`);
+    }
   };
 
   const resetForm = () => {
@@ -66,11 +116,44 @@ const Customers = () => {
     });
     setShowAddModal(false);
   };
+
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Refreshing customers...');
+      
+      await DatabaseAdapter.initialize();
+      const dbCustomers = await DatabaseAdapter.getCustomers();
+      
+      if (dbCustomers && Array.isArray(dbCustomers) && dbCustomers.length > 0) {
+        setCustomers(dbCustomers);
+      }
+    } catch (error) {
+      console.error('Failed to refresh customers:', error);
+      setError(`Failed to refresh: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
   
-  const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = customer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredCustomers = (customers || []).filter(customer => {
+    if (!customer || typeof customer !== 'object') return false;
+    
+    const companyName = (customer.companyName || '').toString().toLowerCase();
+    const contactName = (customer.contactName || '').toString().toLowerCase();
+    const email = (customer.email || '').toString().toLowerCase();
+    const phone = (customer.phone || '').toString().toLowerCase();
+    const city = (customer.city || '').toString().toLowerCase();
+    
+    const searchLower = (searchTerm || '').toLowerCase();
+    const matchesSearch = !searchTerm || 
+                         companyName.includes(searchLower) ||
+                         contactName.includes(searchLower) ||
+                         email.includes(searchLower) ||
+                         phone.includes(searchLower) ||
+                         city.includes(searchLower);
+                         
     const matchesStatus = statusFilter === 'All' || customer.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -82,13 +165,39 @@ const Customers = () => {
     <ScrollView style={styles.content}>
       <View style={styles.header}>
         <Text style={styles.title}>Customer Management</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => setShowAddModal(true)}
-        >
-          <Text style={styles.addButtonText}>➕ Add Customer</Text>
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity 
+            style={[styles.headerButton, styles.refreshButton]}
+            onPress={handleRefresh}
+            disabled={loading}
+          >
+            <Text style={styles.refreshButtonText}>
+              {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerButton, styles.addButton]}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Text style={styles.addButtonText}>➕ Add Customer</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Error Display */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <Text style={styles.errorSubtext}>Showing cached data</Text>
+        </View>
+      )}
+
+      {/* Loading Display */}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading customers...</Text>
+        </View>
+      )}
       
       {/* Customer Statistics */}
       <ScrollView 
@@ -322,6 +431,36 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#333',
+  },
+  errorContainer: {
+    backgroundColor: '#fff3cd',
+    borderColor: '#ffeaa7',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#856404',
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: '#856404',
+  },
+  loadingContainer: {
+    backgroundColor: '#e7f3ff',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#0066cc',
+    fontWeight: '600',
   },
   statsContainer: {
     marginBottom: 30,

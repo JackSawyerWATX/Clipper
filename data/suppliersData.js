@@ -1,6 +1,6 @@
-export const suppliersData = [
+export const unsortedSuppliersData = [
   {
-    id: 'SUP001',
+    supplierId: 'SUP001',
     companyName: 'Pratt & Whitney Aerospace',
     location: 'East Hartford, CT',
     address: '400 Main Street, East Hartford, CT 06108',
@@ -16,7 +16,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'AS9100']
   },
   {
-    id: 'SUP002',
+    supplierId: 'SUP002',
     companyName: 'Boeing Commercial Aviation',
     location: 'Seattle, WA',
     address: '100 Boeing Way, Seattle, WA 98108',
@@ -32,7 +32,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'ISO 9001', 'AS9100']
   },
   {
-    id: 'SUP003',
+    supplierId: 'SUP003',
     companyName: 'Honeywell Aerospace',
     location: 'Phoenix, AZ',
     address: '21111 N 19th Ave, Phoenix, AZ 85027',
@@ -48,7 +48,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'TSO Certified']
   },
   {
-    id: 'SUP004',
+    supplierId: 'SUP004',
     companyName: 'Rolls-Royce North America',
     location: 'Indianapolis, IN',
     address: '2001 S Tibbs Ave, Indianapolis, IN 46241',
@@ -64,7 +64,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'AS9100']
   },
   {
-    id: 'SUP005',
+    supplierId: 'SUP005',
     companyName: 'Garmin International',
     location: 'Olathe, KS',
     address: '1200 E 151st St, Olathe, KS 66062',
@@ -80,7 +80,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'TSO Certified', 'DO-178C']
   },
   {
-    id: 'SUP006',
+    supplierId: 'SUP006',
     companyName: 'Collins Aerospace',
     location: 'Cedar Rapids, IA',
     address: '400 Collins Rd NE, Cedar Rapids, IA 52498',
@@ -96,7 +96,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'RTCA DO-160']
   },
   {
-    id: 'SUP007',
+    supplierId: 'SUP007',
     companyName: 'Airbus Americas',
     location: 'Mobile, AL',
     address: '1 Airbus Way, Mobile, AL 36615',
@@ -112,7 +112,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'AS9100']
   },
   {
-    id: 'SUP008',
+    supplierId: 'SUP008',
     companyName: 'Safran Aerospace',
     location: 'Grand Prairie, TX',
     address: '850 Lagoon Dr, Grand Prairie, TX 75050',
@@ -128,7 +128,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'AS9100']
   },
   {
-    id: 'SUP009',
+    supplierId: 'SUP009',
     companyName: 'General Electric Aviation',
     location: 'Cincinnati, OH',
     address: '1 Neumann Way, Cincinnati, OH 45215',
@@ -144,7 +144,7 @@ export const suppliersData = [
     certifications: ['FAA Certified', 'EASA Approved', 'AS9100']
   },
   {
-    id: 'SUP010',
+    supplierId: 'SUP010',
     companyName: 'Textron Aviation',
     location: 'Wichita, KS',
     address: 'One Cessna Blvd, Wichita, KS 67215',
@@ -158,6 +158,326 @@ export const suppliersData = [
     paymentTerms: 'Net 30',
     deliveryTime: '8-12 days',
     certifications: ['FAA Certified', 'AS9100', 'ISO 9001']
+  },
+  {
+    supplierId: 'SUP011',
+    companyName: 'Panasonic Avionics Corporation',
+    location: 'Lake Forest, CA',
+    address: '26200 Enterprise Way, Lake Forest, CA 92630',
+    phone: '+1 (949) 672-2000',
+    contactName: 'Emily Carter',
+    contactEmail: 'emily.carter@panasonic.aero',
+    specialization: 'In-Flight Entertainment & Connectivity',
+    establishedSince: '2017-06-12',
+    totalOrders: 31,
+    reliabilityRating: 4.7,
+    paymentTerms: 'Net 30',
+    deliveryTime: '10-15 days',
+    certifications: ['FAA Certified', 'ISO 9001']
+  },
+  {
+    supplierId: 'SUP012',
+    companyName: 'Spirit AeroSystems',
+    location: 'Wichita, KS',
+    address: '3801 S Oliver St, Wichita, KS 67210',
+    phone: '+1 (316) 526-9000',
+    contactName: 'Brian Lee',
+    contactEmail: 'brian.lee@spiritaero.com',
+    specialization: 'Fuselage & Wing Structures',
+    establishedSince: '2016-11-03',
+    totalOrders: 28,
+    reliabilityRating: 4.6,
+    paymentTerms: 'Net 45',
+    deliveryTime: '14-20 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP013',
+    companyName: 'GKN Aerospace',
+    location: 'El Cajon, CA',
+    address: '1150 W Bradley Ave, El Cajon, CA 92020',
+    phone: '+1 (619) 449-9661',
+    contactName: 'Samantha Young',
+    contactEmail: 'samantha.young@gknaerospace.com',
+    specialization: 'Aerostructures & Engine Systems',
+    establishedSince: '2018-02-19',
+    totalOrders: 24,
+    reliabilityRating: 4.5,
+    paymentTerms: 'Net 30',
+    deliveryTime: '12-18 days',
+    certifications: ['FAA Certified', 'EASA Approved']
+  },
+  {
+    supplierId: 'SUP014',
+    companyName: 'Meggitt PLC',
+    location: 'Simi Valley, CA',
+    address: '2050 Easy Way, Simi Valley, CA 93065',
+    phone: '+1 (805) 584-4100',
+    contactName: 'George King',
+    contactEmail: 'george.king@meggitt.com',
+    specialization: 'Braking Systems & Sensors',
+    establishedSince: '2017-09-25',
+    totalOrders: 19,
+    reliabilityRating: 4.4,
+    paymentTerms: 'Net 30',
+    deliveryTime: '10-14 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP015',
+    companyName: 'Parker Aerospace',
+    location: 'Irvine, CA',
+    address: '14300 Alton Pkwy, Irvine, CA 92618',
+    phone: '+1 (949) 833-3000',
+    contactName: 'Olivia Adams',
+    contactEmail: 'olivia.adams@parker.com',
+    specialization: 'Flight Control & Hydraulic Systems',
+    establishedSince: '2019-01-14',
+    totalOrders: 22,
+    reliabilityRating: 4.6,
+    paymentTerms: 'Net 45',
+    deliveryTime: '12-16 days',
+    certifications: ['FAA Certified', 'EASA Approved']
+  },
+  {
+    supplierId: 'SUP016',
+    companyName: 'Moog Inc.',
+    location: 'Elma, NY',
+    address: '400 Jamison Rd, Elma, NY 14059',
+    phone: '+1 (716) 652-2000',
+    contactName: 'Derek Evans',
+    contactEmail: 'derek.evans@moog.com',
+    specialization: 'Actuation Systems',
+    establishedSince: '2018-05-21',
+    totalOrders: 18,
+    reliabilityRating: 4.5,
+    paymentTerms: 'Net 30',
+    deliveryTime: '14-20 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP017',
+    companyName: 'Rockwell Collins',
+    location: 'Cedar Rapids, IA',
+    address: '400 Collins Rd NE, Cedar Rapids, IA 52498',
+    phone: '+1 (319) 295-1000',
+    contactName: 'Rachel Green',
+    contactEmail: 'rachel.green@rockwellcollins.com',
+    specialization: 'Avionics & Communication',
+    establishedSince: '2017-03-10',
+    totalOrders: 27,
+    reliabilityRating: 4.7,
+    paymentTerms: 'Net 30',
+    deliveryTime: '10-14 days',
+    certifications: ['FAA Certified', 'EASA Approved']
+  },
+  {
+    supplierId: 'SUP018',
+    companyName: 'Hexcel Corporation',
+    location: 'Stamford, CT',
+    address: '281 Tresser Blvd, Stamford, CT 06901',
+    phone: '+1 (203) 969-0666',
+    contactName: 'Kevin Brown',
+    contactEmail: 'kevin.brown@hexcel.com',
+    specialization: 'Composite Materials',
+    establishedSince: '2016-08-17',
+    totalOrders: 15,
+    reliabilityRating: 4.3,
+    paymentTerms: 'Net 30',
+    deliveryTime: '15-22 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP019',
+    companyName: 'AAR Corp.',
+    location: 'Wood Dale, IL',
+    address: '1100 N Wood Dale Rd, Wood Dale, IL 60191',
+    phone: '+1 (630) 227-2000',
+    contactName: 'Linda White',
+    contactEmail: 'linda.white@aarcorp.com',
+    specialization: 'MRO & Supply Chain',
+    establishedSince: '2018-10-05',
+    totalOrders: 21,
+    reliabilityRating: 4.4,
+    paymentTerms: 'Net 45',
+    deliveryTime: '12-18 days',
+    certifications: ['FAA Certified', 'AS9120']
+  },
+  {
+    supplierId: 'SUP020',
+    companyName: 'Aviall Services (A Boeing Company)',
+    location: 'Dallas, TX',
+    address: '2750 Regent Blvd, Dallas, TX 75261',
+    phone: '+1 (972) 586-1000',
+    contactName: 'Steven Black',
+    contactEmail: 'steven.black@aviall.com',
+    specialization: 'Aircraft Parts Distribution',
+    establishedSince: '2017-12-11',
+    totalOrders: 25,
+    reliabilityRating: 4.5,
+    paymentTerms: 'Net 30',
+    deliveryTime: '8-12 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP021',
+    companyName: 'Pacific Northwest Aerospace Alliance',
+    location: 'Lynnwood, WA',
+    address: '19000 44th Ave W, Lynnwood, WA 98036',
+    phone: '+1 (425) 885-0290',
+    contactName: 'Megan Scott',
+    contactEmail: 'megan.scott@pnaa.net',
+    specialization: 'Aerospace Supply Chain',
+    establishedSince: '2015-04-22',
+    totalOrders: 13,
+    reliabilityRating: 4.2,
+    paymentTerms: 'Net 30',
+    deliveryTime: '15-20 days',
+    certifications: ['AS9100']
+  },
+  {
+    supplierId: 'SUP022',
+    companyName: 'Aviation Technical Services',
+    location: 'Everett, WA',
+    address: '3000 112th St SW, Everett, WA 98204',
+    phone: '+1 (425) 347-6100',
+    contactName: 'Paul Turner',
+    contactEmail: 'paul.turner@atsmro.com',
+    specialization: 'MRO Services',
+    establishedSince: '2016-07-19',
+    totalOrders: 17,
+    reliabilityRating: 4.3,
+    paymentTerms: 'Net 45',
+    deliveryTime: '12-16 days',
+    certifications: ['FAA Certified', 'AS9110']
+  },
+  {
+    supplierId: 'SUP023',
+    companyName: 'Precision Castparts Corp.',
+    location: 'Portland, OR',
+    address: '4650 SW Macadam Ave, Portland, OR 97239',
+    phone: '+1 (503) 946-4800',
+    contactName: 'Gregory Hall',
+    contactEmail: 'gregory.hall@precast.com',
+    specialization: 'Metal Components',
+    establishedSince: '2017-11-28',
+    totalOrders: 20,
+    reliabilityRating: 4.4,
+    paymentTerms: 'Net 30',
+    deliveryTime: '14-19 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP024',
+    companyName: 'Esterline Technologies',
+    location: 'Bellevue, WA',
+    address: '500 108th Ave NE, Bellevue, WA 98004',
+    phone: '+1 (425) 453-9400',
+    contactName: 'Jessica Kim',
+    contactEmail: 'jessica.kim@esterline.com',
+    specialization: 'Control Systems & Sensors',
+    establishedSince: '2018-03-15',
+    totalOrders: 16,
+    reliabilityRating: 4.3,
+    paymentTerms: 'Net 30',
+    deliveryTime: '13-17 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP025',
+    companyName: 'Crane Aerospace & Electronics',
+    location: 'Lynnwood, WA',
+    address: '16700 13th Ave W, Lynnwood, WA 98037',
+    phone: '+1 (425) 743-1313',
+    contactName: 'Peter Brown',
+    contactEmail: 'peter.brown@craneae.com',
+    specialization: 'Power, Sensing & Fluid Management',
+    establishedSince: '2017-05-09',
+    totalOrders: 14,
+    reliabilityRating: 4.2,
+    paymentTerms: 'Net 30',
+    deliveryTime: '12-16 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP026',
+    companyName: 'Aviation Partners Boeing',
+    location: 'Seattle, WA',
+    address: '2811 S 102nd St, Seattle, WA 98168',
+    phone: '+1 (206) 762-1171',
+    contactName: 'Anna Bell',
+    contactEmail: 'anna.bell@aviationpartnersboeing.com',
+    specialization: 'Winglets & Aerodynamic Components',
+    establishedSince: '2016-09-13',
+    totalOrders: 12,
+    reliabilityRating: 4.1,
+    paymentTerms: 'Net 30',
+    deliveryTime: '15-20 days',
+    certifications: ['FAA Certified', 'AS9100']
+  },
+  {
+    supplierId: 'SUP027',
+    companyName: 'Aero Controls Inc.',
+    location: 'Auburn, WA',
+    address: '1601 Boundary Blvd, Auburn, WA 98001',
+    phone: '+1 (253) 833-9441',
+    contactName: 'Diana Rose',
+    contactEmail: 'diana.rose@aerocontrols.com',
+    specialization: 'Component Repair & Overhaul',
+    establishedSince: '2017-12-07',
+    totalOrders: 11,
+    reliabilityRating: 4.2,
+    paymentTerms: 'Net 30',
+    deliveryTime: '14-18 days',
+    certifications: ['FAA Certified', 'AS9110']
+  },
+  {
+    supplierId: 'SUP028',
+    companyName: 'Aviation West Charters',
+    location: 'Scottsdale, AZ',
+    address: '14600 N Airport Dr, Scottsdale, AZ 85260',
+    phone: '+1 (480) 991-7076',
+    contactName: 'Mark Harris',
+    contactEmail: 'mark.harris@aviationwestcharters.com',
+    specialization: 'Charter & Logistics',
+    establishedSince: '2015-10-23',
+    totalOrders: 9,
+    reliabilityRating: 4.0,
+    paymentTerms: 'Net 30',
+    deliveryTime: '10-15 days',
+    certifications: ['FAA Certified']
+  },
+  {
+    supplierId: 'SUP029',
+    companyName: 'Aviation Supplies & Academics (ASA)',
+    location: 'Newcastle, WA',
+    address: '7005 132nd Pl SE, Newcastle, WA 98059',
+    phone: '+1 (425) 235-1500',
+    contactName: 'Susan Miller',
+    contactEmail: 'susan.miller@asa2fly.com',
+    specialization: 'Pilot Supplies & Training',
+    establishedSince: '2016-06-14',
+    totalOrders: 10,
+    reliabilityRating: 4.1,
+    paymentTerms: 'Net 30',
+    deliveryTime: '12-16 days',
+    certifications: ['FAA Certified']
+  },
+  {
+    supplierId: 'SUP030',
+    companyName: 'B/E Aerospace (now Collins Aerospace)',
+    location: 'Winston-Salem, NC',
+    address: '2000 W 1st St, Winston-Salem, NC 27104',
+    phone: '+1 (336) 744-2000',
+    contactName: 'Patricia King',
+    contactEmail: 'patricia.king@beaerospace.com',
+    specialization: 'Cabin Interior Products',
+    establishedSince: '2017-08-29',
+    totalOrders: 13,
+    reliabilityRating: 4.3,
+    paymentTerms: 'Net 30',
+    deliveryTime: '13-18 days',
+    certifications: ['FAA Certified', 'AS9100']
   }
 ];
 
@@ -173,13 +493,13 @@ export const getSuppliersByRating = (minRating = 4.5) => {
 };
 
 export const getSuppliersByLocation = (state) => {
-  return suppliersData.filter(supplier => 
+  return suppliersData.filter(supplier =>
     supplier.location.toLowerCase().includes(state.toLowerCase())
   );
 };
 
 export const getSuppliersBySpecialization = (specialization) => {
-  return suppliersData.filter(supplier => 
+  return suppliersData.filter(supplier =>
     supplier.specialization.toLowerCase().includes(specialization.toLowerCase())
   );
 };
@@ -188,7 +508,7 @@ export const getSupplierStats = () => {
   const totalSuppliers = suppliersData.length;
   const avgRating = suppliersData.reduce((sum, supplier) => sum + supplier.reliabilityRating, 0) / totalSuppliers;
   const totalOrders = suppliersData.reduce((sum, supplier) => sum + supplier.totalOrders, 0);
-  const fastDeliverySuppliers = suppliersData.filter(supplier => 
+  const fastDeliverySuppliers = suppliersData.filter(supplier =>
     parseInt(supplier.deliveryTime.split('-')[1]) <= 14
   ).length;
 

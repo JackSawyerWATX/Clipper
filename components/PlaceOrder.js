@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import DatabaseAdapter from '../services/DatabaseAdapter';
 
 // Import data from existing components
 let customersData = [];
@@ -26,6 +27,8 @@ const PlaceOrder = () => {
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [showCustomerSelect, setShowCustomerSelect] = useState(false);
   const [showPartSelect, setShowPartSelect] = useState(false);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   
   const [orderDetails, setOrderDetails] = useState({
     priority: 'Medium',
@@ -43,6 +46,9 @@ const PlaceOrder = () => {
       ...prev,
       estimatedDelivery: deliveryDate.toISOString().split('T')[0]
     }));
+    
+    // Fetch recent orders
+    fetchRecentOrders();
   }, []);
 
   const filteredCustomers = customersData.filter(customer =>
@@ -55,6 +61,38 @@ const PlaceOrder = () => {
     part.partNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     part.manufacturer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Fetch recent orders from last 24 hours
+  const fetchRecentOrders = async () => {
+    try {
+      console.log('📋 Fetching recent orders from database...');
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      
+      const orders = await DatabaseAdapter.getOrders();
+      console.log(`📊 Total orders retrieved: ${orders.length}`);
+      
+      const recentOrdersList = orders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        const isRecent = orderDate >= twentyFourHoursAgo;
+        if (isRecent) {
+          console.log(`✅ Recent order found: ${order.orderId} - ${orderDate.toLocaleString()}`);
+        }
+        return isRecent;
+      }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // Most recent first
+      
+      setRecentOrders(recentOrdersList);
+      console.log(`🎯 Found ${recentOrdersList.length} orders in the last 24 hours`);
+      
+      // Log the most recent order for debugging
+      if (recentOrdersList.length > 0) {
+        const newest = recentOrdersList[0];
+        console.log(`🆕 Most recent order: ${newest.orderId} at ${new Date(newest.createdAt).toLocaleString()}`);
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch recent orders:', error);
+    }
+  };
 
   const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
@@ -74,6 +112,9 @@ const PlaceOrder = () => {
       const updatedItems = [...orderItems];
       updatedItems[existingItemIndex].quantity += 1;
       setOrderItems(updatedItems);
+      
+      // Optional: Show feedback
+      console.log(`Updated ${part.name} quantity to ${updatedItems[existingItemIndex].quantity}`);
     } else {
       // Add new item
       const newItem = {
@@ -81,12 +122,15 @@ const PlaceOrder = () => {
         partId: part.id,
         partName: part.name,
         partNumber: part.partNumber,
-        unitPrice: part.price,
+        unitPrice: parseFloat(part.price || 0),
         quantity: 1,
         manufacturer: part.manufacturer,
         inStock: part.inStock || part.quantity || 0
       };
       setOrderItems([...orderItems, newItem]);
+      
+      // Optional: Show feedback
+      console.log(`Added ${part.name} to order`);
     }
     setShowPartSelect(false);
     setSearchTerm('');
@@ -107,10 +151,29 @@ const PlaceOrder = () => {
   };
 
   const calculateOrderTotal = () => {
-    return orderItems.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+    let total = 0;
+    console.log('Calculating order total for', orderItems.length, 'items:');
+    
+    orderItems.forEach((item, index) => {
+      const itemUnitPrice = parseFloat(item.unitPrice || 0);
+      const itemQuantity = parseInt(item.quantity || 0);
+      const itemTotal = itemUnitPrice * itemQuantity;
+      
+      console.log(`Item ${index + 1}:`, {
+        name: item.partName,
+        unitPrice: itemUnitPrice,
+        quantity: itemQuantity,
+        itemTotal: itemTotal
+      });
+      
+      total += itemTotal;
+    });
+    
+    console.log('Grand Total:', total);
+    return total;
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedCustomer) {
       Alert.alert('Error', 'Please select a customer');
       return;
@@ -127,43 +190,152 @@ const PlaceOrder = () => {
       const itemNames = outOfStockItems.map(item => item.partName).join(', ');
       Alert.alert('Stock Warning', `The following items have insufficient stock: ${itemNames}. Continue anyway?`, [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => submitOrder() }
+        { text: 'Continue', onPress: async () => await submitOrder() }
       ]);
     } else {
-      submitOrder();
+      await submitOrder();
     }
   };
 
-  const submitOrder = () => {
-    const newOrder = {
-      id: `ORD${Date.now().toString().slice(-6)}`,
-      customerName: selectedCustomer.companyName,
-      customerEmail: selectedCustomer.email,
-      orderDate: new Date().toISOString().split('T')[0],
-      status: 'Processing',
-      priority: orderDetails.priority,
-      totalAmount: calculateOrderTotal(),
-      items: orderItems,
-      shippingAddress: orderDetails.shippingAddress,
-      estimatedDelivery: orderDetails.estimatedDelivery,
-      notes: orderDetails.notes,
-      paymentTerms: orderDetails.paymentTerms
-    };
+  const submitOrder = async () => {
 
-    console.log('Order placed:', newOrder);
-    Alert.alert('Success', `Order ${newOrder.id} has been placed successfully!`);
-    
-    // Reset form
-    setSelectedCustomer(null);
-    setOrderItems([]);
-    setOrderDetails({
-      priority: 'Medium',
-      shippingAddress: '',
-      notes: '',
-      paymentTerms: 'Net 30',
-      estimatedDelivery: ''
-    });
-    setShowOrderModal(false);
+    setIsPlacingOrder(true);
+    try {
+      // Fetch all existing orders to determine the next sequential order number
+      const allOrders = await DatabaseAdapter.getOrders();
+      let maxOrderNum = 0;
+      allOrders.forEach(order => {
+        // Accept both orderId and id fields
+        const idStr = (order.orderId || order.id || '').toString();
+        const match = idStr.match(/^ORD(\d{3})$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxOrderNum) maxOrderNum = num;
+        }
+      });
+      const nextOrderNum = maxOrderNum + 1;
+      const nextOrderId = `ORD${nextOrderNum.toString().padStart(3, '0')}`;
+
+      const orderData = {
+        orderId: nextOrderId,
+        customer: selectedCustomer._id || selectedCustomer.customerId,
+        customerName: selectedCustomer.companyName,
+        customerEmail: selectedCustomer.email,
+        orderDate: new Date(),
+        status: 'Processing',
+        priority: orderDetails.priority,
+        items: orderItems.map(item => ({
+          partId: item.partId,
+          partName: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalPrice: item.price * item.quantity
+        })),
+        totalAmount: calculateOrderTotal(),
+        shippingAddress: orderDetails.shippingAddress,
+        estimatedDelivery: orderDetails.estimatedDelivery ? new Date(orderDetails.estimatedDelivery) : null,
+        notes: orderDetails.notes,
+        paymentTerms: orderDetails.paymentTerms,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      console.log('Creating order:', orderData);
+
+      // 1. Create order in database
+      const savedOrder = await DatabaseAdapter.createOrder(orderData);
+      console.log('✅ Order saved to database:', savedOrder);
+      console.log('🆔 Saved order ID:', savedOrder.orderId || savedOrder._id);
+      console.log('📅 Saved order createdAt:', savedOrder.createdAt);
+
+      // 2. Update inventory quantities for each item
+      for (const item of orderItems) {
+        try {
+          console.log(`Updating inventory for ${item.partId}: reducing by ${item.quantity}`);
+          await DatabaseAdapter.adjustStock(item.partId, -item.quantity, `Order ${orderData.orderId}`);
+        } catch (invError) {
+          console.warn(`Failed to update inventory for ${item.partId}:`, invError);
+          // Continue with other items even if one fails
+        }
+      }
+
+      // 3. Create corresponding invoice
+      const invoiceData = {
+        invoiceId: `INV${Date.now().toString().slice(-6)}`,
+        order: savedOrder._id,
+        customer: selectedCustomer._id || selectedCustomer.customerId,
+        customerName: selectedCustomer.companyName,
+        customerEmail: selectedCustomer.email,
+        invoiceDate: new Date(),
+        dueDate: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)), // 30 days from now
+        items: orderItems.map(item => ({
+          partId: item.partId,
+          partName: item.name,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalPrice: item.price * item.quantity
+        })),
+        subtotal: calculateOrderTotal(),
+        tax: calculateOrderTotal() * 0.08, // 8% tax
+        totalAmount: calculateOrderTotal() * 1.08,
+        status: 'Pending',
+        paymentTerms: orderDetails.paymentTerms,
+        notes: orderDetails.notes,
+        createdAt: new Date()
+      };
+
+      console.log('Creating invoice:', invoiceData);
+      const savedInvoice = await DatabaseAdapter.createInvoice(invoiceData);
+      console.log('Invoice created:', savedInvoice);
+
+      // Show success message
+      Alert.alert(
+        'Success! 🎉', 
+        `Order ${orderData.orderId} has been placed successfully!\n\n` +
+        `• Order saved to database\n` +
+        `• Inventory quantities updated\n` +
+        `• Invoice ${invoiceData.invoiceId} created\n\n` +
+        `The order will appear in Order Management and Dashboard.`,
+        [{ text: 'OK', style: 'default' }]
+      );
+      
+      // Reset form
+      setSelectedCustomer(null);
+      setOrderItems([]);
+      setOrderDetails({
+        priority: 'Medium',
+        shippingAddress: '',
+        notes: '',
+        paymentTerms: 'Net 30',
+        estimatedDelivery: ''
+      });
+      setShowOrderModal(false);
+      
+      // Refresh recent orders list after a short delay to ensure database sync
+      console.log('🔄 Refreshing recent orders after order placement...');
+      console.log('⏰ Current time:', new Date().toLocaleString());
+      setTimeout(async () => {
+        console.log('⚡ Starting delayed refresh...');
+        await fetchRecentOrders();
+        console.log('✅ Delayed refresh completed');
+        
+        // Also try an immediate second refresh to see if there's a caching issue
+        setTimeout(async () => {
+          console.log('🔄 Second refresh attempt...');
+          await fetchRecentOrders();
+        }, 1000);
+      }, 500); // 500ms delay to ensure database has synced
+
+    } catch (error) {
+      console.error('Failed to place order:', error);
+      Alert.alert(
+        'Error', 
+        `Failed to place order: ${error.message}\n\nPlease try again or contact support.`,
+        [{ text: 'OK', style: 'default' }]
+      );
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   const resetForm = () => {
@@ -210,6 +382,154 @@ const PlaceOrder = () => {
       <Text style={styles.instructions}>
         Click "Start New Order" to create a new order for your customers. You can select items from your inventory and manage all order details in one place.
       </Text>
+
+      {/* Running Order Total - Shows as items are added */}
+      {orderItems.length > 0 && (
+        <View style={styles.runningTotalContainer}>
+          <Text style={styles.runningTotalTitle}>Current Order</Text>
+          
+          {/* Item List with Totals */}
+          <View style={styles.runningItemsList}>
+            {orderItems.map((item, index) => (
+              <View key={item.id} style={styles.runningItemRow}>
+                <View style={styles.runningItemInfo}>
+                  <Text style={styles.runningItemName}>{item.partName}</Text>
+                  <Text style={styles.runningItemDetails}>
+                    ${parseFloat(item.unitPrice || 0).toFixed(2)} each
+                  </Text>
+                </View>
+                
+                {/* Quantity Controls */}
+                <View style={styles.runningQuantityControls}>
+                  <TouchableOpacity 
+                    style={styles.runningQuantityButton}
+                    onPress={() => updateItemQuantity(item.id, item.quantity - 1)}
+                  >
+                    <Text style={styles.runningQuantityButtonText}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.runningQuantityText}>{item.quantity}</Text>
+                  <TouchableOpacity 
+                    style={styles.runningQuantityButton}
+                    onPress={() => updateItemQuantity(item.id, item.quantity + 1)}
+                  >
+                    <Text style={styles.runningQuantityButtonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <Text style={styles.runningItemTotal}>
+                  ${(parseFloat(item.unitPrice || 0) * parseInt(item.quantity || 0)).toFixed(2)}
+                </Text>
+                
+                {/* Remove Button */}
+                <TouchableOpacity 
+                  style={styles.runningRemoveButton}
+                  onPress={() => removeItem(item.id)}
+                >
+                  <Text style={styles.runningRemoveButtonText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+          
+          {/* Grand Total */}
+          <View style={styles.runningGrandTotal}>
+            <Text style={styles.runningGrandTotalLabel}>Total Amount</Text>
+            <Text style={styles.runningGrandTotalAmount}>
+              ${calculateOrderTotal().toFixed(2)}
+            </Text>
+          </View>
+          
+          {/* Quick Actions */}
+          <View style={styles.runningTotalActions}>
+            <TouchableOpacity 
+              style={styles.clearCartButton}
+              onPress={() => setOrderItems([])}
+            >
+              <Text style={styles.clearCartButtonText}>Clear All</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.proceedOrderButton}
+              onPress={() => setShowOrderModal(true)}
+            >
+              <Text style={styles.proceedOrderButtonText}>Proceed to Checkout</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Recent Orders Section */}
+      <View style={styles.recentOrdersSection}>
+        <View style={styles.recentOrdersHeader}>
+          <Text style={styles.recentOrdersTitle}>Recent Orders (Last 24 Hours)</Text>
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={async () => {
+              console.log('🔄 Manual refresh button clicked');
+              console.log('⏰ Manual refresh time:', new Date().toLocaleString());
+              await fetchRecentOrders();
+            }}
+          >
+            <Text style={styles.refreshButtonText}>↻ Refresh</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.refreshButton, { backgroundColor: '#dc3545', marginLeft: 10 }]}
+            onPress={async () => {
+              console.log('🐛 DEBUG: Checking ALL orders in database...');
+              try {
+                const allOrders = await DatabaseAdapter.getOrders();
+                console.log('📊 Total orders in database:', allOrders.length);
+                allOrders.forEach((order, index) => {
+                  console.log(`Order ${index + 1}:`, {
+                    id: order._id || order.id,
+                    orderId: order.orderId,
+                    createdAt: order.createdAt,
+                    customerName: order.customerName
+                  });
+                });
+              } catch (error) {
+                console.error('❌ Error fetching all orders:', error);
+              }
+            }}
+          >
+            <Text style={styles.refreshButtonText}>🐛 Debug</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {recentOrders.length > 0 ? (
+          <View style={styles.recentOrdersList}>
+            {recentOrders.map((order, index) => (
+              <View key={order.id || index} style={styles.recentOrderItem}>
+                <View style={styles.recentOrderHeader}>
+                  <Text style={styles.recentOrderId}>Order #{order.orderId}</Text>
+                  <Text style={styles.recentOrderDate}>
+                    {new Date(order.createdAt).toLocaleString()}
+                  </Text>
+                </View>
+                <Text style={styles.recentOrderCustomer}>
+                  {order.customerName}
+                </Text>
+                <View style={styles.recentOrderDetails}>
+                  <Text style={styles.recentOrderItems}>
+                    {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
+                  </Text>
+                  <Text style={styles.recentOrderAmount}>
+                    ${parseFloat(order.totalAmount || 0).toFixed(2)}
+                  </Text>
+                  <Text style={[styles.recentOrderStatus, {
+                    backgroundColor: order.status === 'Completed' ? '#28a745' : 
+                                   order.status === 'Pending' ? '#ffc107' : '#dc3545'
+                  }]}>
+                    {order.status}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.noRecentOrders}>No orders placed in the last 24 hours</Text>
+        )}
+      </View>
 
       {/* Order Placement Modal */}
       <Modal
@@ -258,6 +578,7 @@ const PlaceOrder = () => {
                   <Text style={styles.itemName}>{item.partName}</Text>
                   <Text style={styles.itemDetails}>{item.partNumber} - {item.manufacturer}</Text>
                   <Text style={styles.itemStock}>Stock: {item.inStock}</Text>
+                  <Text style={styles.itemUnitPrice}>Price: ${parseFloat(item.unitPrice || 0).toFixed(2)} each</Text>
                 </View>
                 <View style={styles.itemControls}>
                   <View style={styles.quantityControls}>
@@ -376,6 +697,24 @@ const PlaceOrder = () => {
                   {orderItems.reduce((sum, item) => sum + item.quantity, 0)}
                 </Text>
               </View>
+              
+              {/* Detailed Item Breakdown */}
+              {orderItems.length > 0 && (
+                <View style={styles.itemBreakdown}>
+                  <Text style={styles.breakdownTitle}>Price Breakdown:</Text>
+                  {orderItems.map((item, index) => (
+                    <View key={item.id} style={styles.breakdownRow}>
+                      <Text style={styles.breakdownItem}>
+                        {item.partName} (×{item.quantity})
+                      </Text>
+                      <Text style={styles.breakdownPrice}>
+                        ${(parseFloat(item.unitPrice || 0) * parseInt(item.quantity || 0)).toFixed(2)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <Text style={styles.totalLabel}>Total Amount:</Text>
                 <Text style={styles.totalValue}>${calculateOrderTotal().toFixed(2)}</Text>
@@ -388,8 +727,14 @@ const PlaceOrder = () => {
             <TouchableOpacity style={styles.cancelButton} onPress={resetForm}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
-              <Text style={styles.placeOrderButtonText}>Place Order</Text>
+            <TouchableOpacity 
+              style={[styles.placeOrderButton, isPlacingOrder && styles.placeOrderButtonDisabled]} 
+              onPress={handlePlaceOrder}
+              disabled={isPlacingOrder}
+            >
+              <Text style={styles.placeOrderButtonText}>
+                {isPlacingOrder ? '🔄 Placing Order...' : 'Place Order'}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -645,6 +990,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#007bff',
   },
+  itemUnitPrice: {
+    fontSize: 12,
+    color: '#28a745',
+    fontWeight: '600',
+    marginTop: 2,
+  },
   itemControls: {
     alignItems: 'flex-end',
   },
@@ -788,6 +1139,175 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#28a745',
   },
+  itemBreakdown: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 6,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  breakdownTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#495057',
+    marginBottom: 8,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  breakdownItem: {
+    fontSize: 13,
+    color: '#666',
+    flex: 1,
+  },
+  breakdownPrice: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#28a745',
+    textAlign: 'right',
+  },
+  // Running Total Styles
+  runningTotalContainer: {
+    backgroundColor: '#fff',
+    margin: 15,
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#28a745',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  runningTotalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#28a745',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  runningItemsList: {
+    marginBottom: 15,
+  },
+  runningItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  runningItemInfo: {
+    flex: 1,
+  },
+  runningItemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  runningItemDetails: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  runningItemTotal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#28a745',
+    minWidth: 80,
+    textAlign: 'right',
+  },
+  runningQuantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
+  runningQuantityButton: {
+    backgroundColor: '#007bff',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  runningQuantityButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  runningQuantityText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginHorizontal: 12,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  runningRemoveButton: {
+    backgroundColor: '#dc3545',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  runningRemoveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  runningGrandTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 15,
+    borderTopWidth: 2,
+    borderTopColor: '#28a745',
+    marginBottom: 15,
+  },
+  runningGrandTotalLabel: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  runningGrandTotalAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#28a745',
+  },
+  runningTotalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  clearCartButton: {
+    backgroundColor: '#dc3545',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 0.45,
+  },
+  clearCartButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  proceedOrderButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    flex: 0.45,
+  },
+  proceedOrderButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   actionButtons: {
     flexDirection: 'row',
     padding: 20,
@@ -816,6 +1336,10 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  placeOrderButtonDisabled: {
+    backgroundColor: '#95a5a6',
+    opacity: 0.7,
   },
   overlayModal: {
     flex: 1,
@@ -879,6 +1403,102 @@ const styles = StyleSheet.create({
   closeSelectionButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  
+  // Recent Orders Styles
+  recentOrdersSection: {
+    marginTop: 30,
+    paddingTop: 20,
+    borderTopWidth: 2,
+    borderTopColor: '#e9ecef',
+  },
+  recentOrdersHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  recentOrdersTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  refreshButton: {
+    backgroundColor: '#007bff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  refreshButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  noRecentOrders: {
+    textAlign: 'center',
+    color: '#6c757d',
+    fontStyle: 'italic',
+    padding: 20,
+  },
+  recentOrdersList: {
+    gap: 12,
+  },
+  recentOrderItem: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
+    padding: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007bff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  recentOrderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  recentOrderId: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007bff',
+  },
+  recentOrderDate: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  recentOrderCustomer: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  recentOrderDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  recentOrderItems: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  recentOrderAmount: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#28a745',
+  },
+  recentOrderStatus: {
+    fontSize: 10,
+    color: 'white',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    minWidth: 60,
   },
 });
 
