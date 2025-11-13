@@ -225,10 +225,10 @@ const PlaceOrder = ({ showOrderModal, setShowOrderModal }) => {
         priority: orderDetails.priority,
         items: orderItems.map(item => ({
           partId: item.partId,
-          partName: item.name,
+          partName: item.partName,
           quantity: item.quantity,
-          unitPrice: item.price,
-          totalPrice: item.price * item.quantity
+          unitPrice: item.unitPrice,
+          totalPrice: item.unitPrice * item.quantity
         })),
         totalAmount: calculateOrderTotal(),
         shippingAddress: orderDetails.shippingAddress,
@@ -269,10 +269,10 @@ const PlaceOrder = ({ showOrderModal, setShowOrderModal }) => {
         dueDate: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)), // 30 days from now
         items: orderItems.map(item => ({
           partId: item.partId,
-          partName: item.name,
+          partName: item.partName,
           quantity: item.quantity,
-          unitPrice: item.price,
-          totalPrice: item.price * item.quantity
+          unitPrice: item.unitPrice,
+          totalPrice: item.unitPrice * item.quantity
         })),
         subtotal: calculateOrderTotal(),
         tax: calculateOrderTotal() * 0.08, // 8% tax
@@ -287,14 +287,90 @@ const PlaceOrder = ({ showOrderModal, setShowOrderModal }) => {
       const savedInvoice = await DatabaseAdapter.createInvoice(invoiceData);
       console.log('Invoice created:', savedInvoice);
 
-      // Show success message
-      Alert.alert(
-        'Success! 🎉', 
-        `Order ${orderData.orderId} has been placed successfully!\n\n` +
+      // 4. Create corresponding shipment
+      const shipmentData = {
+        shipmentId: `SHIP${Date.now().toString().slice(-6)}`,
+        order: savedOrder._id,
+        customer: selectedCustomer._id || selectedCustomer.customerId,
+        customerName: selectedCustomer.companyName,
+        items: orderItems.map(item => ({
+          partId: item.partId,
+          partName: item.partName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.unitPrice * item.quantity
+        })),
+        status: 'Processing',
+        carrier: 'UPS',
+        shippingAddress: orderDetails.shippingAddress,
+        estimatedDelivery: orderDetails.estimatedDelivery ? new Date(orderDetails.estimatedDelivery) : null,
+        shippingCost: calculateOrderTotal() * 0.05, // 5% of order value as shipping
+        priority: orderDetails.priority,
+        notes: orderDetails.notes,
+        createdAt: new Date()
+      };
+
+      console.log('Creating shipment:', shipmentData);
+      const savedShipment = await DatabaseAdapter.createShipment(shipmentData);
+      console.log('Shipment created:', savedShipment);
+
+      // 5. Process payment
+      const paymentData = {
+        paymentId: `PAY${Date.now().toString().slice(-6)}`,
+        invoice: savedInvoice._id,
+        order: savedOrder._id,
+        customer: selectedCustomer._id || selectedCustomer.customerId,
+        amount: savedInvoice.totalAmount,
+        paymentMethod: 'Credit Card', // Default payment method
+        status: 'Completed',
+        processedAt: new Date(),
+        notes: `Payment for order ${orderData.orderId}`,
+        createdAt: new Date()
+      };
+
+      console.log('Processing payment:', paymentData);
+      const paymentResult = await DatabaseAdapter.createPayment(paymentData);
+      console.log('Payment processed:', paymentResult);
+
+      // 6. Check for low stock notifications
+      const lowStockNotifications = [];
+      for (const item of orderItems) {
+        try {
+          const currentInventory = await DatabaseAdapter.getInventoryById(item.partId);
+          if (currentInventory && currentInventory.inStock <= 3) {
+            lowStockNotifications.push({
+              partId: item.partId,
+              partName: item.partName,
+              currentStock: currentInventory.inStock,
+              message: `${item.partName} is running low (${currentInventory.inStock} items remaining)`
+            });
+          }
+        } catch (stockError) {
+          console.warn(`Could not check stock for ${item.partId}:`, stockError);
+        }
+      }
+
+      // Show success message with all details
+      let successMessage = `Order ${orderData.orderId} has been placed successfully!\n\n` +
         `• Order saved to database\n` +
         `• Inventory quantities updated\n` +
-        `• Invoice ${invoiceData.invoiceId} created\n\n` +
-        `The order will appear in Order Management and Dashboard.`,
+        `• Invoice ${invoiceData.invoiceId} created\n` +
+        `• Shipment ${shipmentData.shipmentId} created\n` +
+        `• Payment processed (${paymentResult.status})\n\n`;
+
+      if (lowStockNotifications.length > 0) {
+        successMessage += `⚠️ Low Stock Alerts:\n`;
+        lowStockNotifications.forEach(notification => {
+          successMessage += `• ${notification.message}\n`;
+        });
+        successMessage += `\n`;
+      }
+
+      successMessage += `The order will appear in Order Management and Dashboard.`;
+
+      Alert.alert(
+        'Success! 🎉', 
+        successMessage,
         [{ text: 'OK', style: 'default' }]
       );
       
