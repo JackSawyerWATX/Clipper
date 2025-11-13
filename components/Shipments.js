@@ -16,8 +16,8 @@ const Shipments = () => {
         setLoading(true);
         setError(null);
         await DatabaseAdapter.initialize();
-        const orders = await DatabaseAdapter.getOrders();
-        setShipments(orders);
+        const shipmentsData = await DatabaseAdapter.getShipments();
+        setShipments(shipmentsData);
       } catch (err) {
         setError('Failed to load shipments: ' + (err.message || err));
       } finally {

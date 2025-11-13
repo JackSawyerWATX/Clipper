@@ -6,7 +6,7 @@
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "platforms": ["ios", "android", "web"],
     "splash": {
       "image": "./assets/splash-icon.png",
