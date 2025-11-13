@@ -11,7 +11,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo build:web",
+    "build": "npx expo export:web",
     "build:web": "expo build:web",
     "build:desktop": "expo build:web --platform web",
     "eject": "expo eject",
@@ -67,4 +67,3 @@
   "license": "MIT",
   "homepage": "https://clipper-aviation.com"
 }
-
