@@ -38,6 +38,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [screenData, setScreenData] = useState(Dimensions.get('window'));
+  const [showOrderModal, setShowOrderModal] = useState(false);
 
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: '📊', description: 'Overview & KPIs' },
@@ -192,6 +193,23 @@ export default function App() {
     setSecurityDashboardVisible(true);
   };
 
+  const handlePlaceNewOrder = () => {
+    setActiveTab('placeorder');
+    setShowOrderModal(true);
+  };
+
+  const handleViewInventory = () => {
+    setActiveTab('inventory');
+  };
+
+  const handleManageCustomers = () => {
+    setActiveTab('customers');
+  };
+
+  const handleViewReports = () => {
+    setActiveTab('reports');
+  };
+
   // Get layout configuration - force web to show tablet navigation if not desktop
   const isDesktop = Platform.OS === 'web' ? screenData.width >= 1200 : screenData.width >= 1024;
   const isTablet = Platform.OS === 'web' ? screenData.width >= 600 && screenData.width < 1200 : screenData.width >= 768 && screenData.width < 1024;
@@ -280,17 +298,17 @@ export default function App() {
   // Component rendering based on active tab
   const renderActiveComponent = () => {
     switch(activeTab) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard onPlaceNewOrder={handlePlaceNewOrder} onViewInventory={handleViewInventory} onManageCustomers={handleManageCustomers} onViewReports={handleViewReports} />;
       case 'inventory': return <Inventory />;
       case 'shipments': return <Shipments />;
       case 'orders': return <Orders />;
-      case 'placeorder': return <PlaceOrder />;
+      case 'placeorder': return <PlaceOrder showOrderModal={showOrderModal} setShowOrderModal={setShowOrderModal} />;
       case 'analytics': return <Analytics />;
       case 'customers': return <Customers />;
       case 'suppliers': return <Suppliers />;
       case 'payments': return <Payments />;
       case 'reports': return <Reports />;
-      default: return <Dashboard />;
+      default: return <Dashboard onPlaceNewOrder={handlePlaceNewOrder} onViewInventory={handleViewInventory} onManageCustomers={handleManageCustomers} onViewReports={handleViewReports} />;
     }
   };
 
