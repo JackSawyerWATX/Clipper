@@ -28,7 +28,9 @@ class DatabaseAdapter {
     return data;
   }
   constructor() {
-    this.useMongoDB = true;
+    // Use MongoDB only on server (Node) environments. For web (browser) builds,
+    // prefer fetching from the backend API or falling back to static data.
+    this.useMongoDB = (typeof window === 'undefined');
     this.mongoConnected = false;
     this.initPromise = null;
     this.sessionOrders = [];

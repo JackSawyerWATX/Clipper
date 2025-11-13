@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal } from 'react-native';
-import { suppliersData, getSupplierStats, getTopSuppliersByOrders } from '../data/suppliersData';
 import databaseAdapter from '../services/DatabaseAdapter';
 
 const Suppliers = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [specializationFilter, setSpecializationFilter] = useState('All');
   const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
@@ -25,12 +25,33 @@ const Suppliers = () => {
   React.useEffect(() => {
     let mounted = true;
     setLoading(true);
-    databaseAdapter.getSuppliers({ sort: { companyName: 1 } }).then(data => {
-      if (mounted) {
-        setSuppliers(data);
-        setLoading(false);
+    setError(null);
+
+    const load = async () => {
+      try {
+        // Primary: use adapter which will use MongoDB on server or fetch API on web
+        const data = await databaseAdapter.getSuppliers({ sort: { companyName: 1 } });
+        if (mounted && Array.isArray(data)) {
+          setSuppliers(data);
+          setLoading(false);
+          return;
+        }
+
+        // Fallback: try direct fetch to backend API (useful when adapter fails)
+        const base = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || 'http://localhost:4000';
+        const resp = await fetch(`${base}/suppliers`);
+        if (!resp.ok) throw new Error(`API ${resp.status}`);
+        const json = await resp.json();
+        if (mounted) setSuppliers(Array.isArray(json) ? json : []);
+      } catch (err) {
+        console.error('Failed to load suppliers:', err);
+        if (mounted) setError(err.message || String(err));
+      } finally {
+        if (mounted) setLoading(false);
       }
-    }).catch(() => setLoading(false));
+    };
+
+    load();
     return () => { mounted = false; };
   }, []);
 
@@ -45,17 +66,38 @@ const Suppliers = () => {
   ];
   
   const filteredSuppliers = suppliers.filter(supplier => {
-    const matchesSearch = supplier.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.specialization.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialization = specializationFilter === 'All' || 
-                                  supplier.specialization.toLowerCase().includes(specializationFilter.toLowerCase());
+    const name = (supplier.companyName || '').toLowerCase();
+    const contact = (supplier.contactName || '').toLowerCase();
+    const loc = (supplier.location || '').toLowerCase();
+    const spec = (supplier.specialization || '').toLowerCase();
+    const q = searchTerm.toLowerCase();
+    const matchesSearch = name.includes(q) || contact.includes(q) || loc.includes(q) || spec.includes(q);
+    const matchesSpecialization = specializationFilter === 'All' || spec.includes(specializationFilter.toLowerCase());
     return matchesSearch && matchesSpecialization;
   });
 
-  const stats = getSupplierStats();
-  const topSuppliers = getTopSuppliersByOrders(3);
+  // Compute statistics and top suppliers from the live suppliers data
+  const computeStats = (list) => {
+    const totalSuppliers = list.length;
+    const avgRatingRaw = totalSuppliers ? list.reduce((sum, s) => sum + (s.reliabilityRating || 0), 0) / totalSuppliers : 0;
+    const avgRating = (isNaN(avgRatingRaw) ? 0 : avgRatingRaw).toFixed(1);
+    const totalOrders = list.reduce((sum, s) => sum + (s.totalOrders || 0), 0);
+    const fastDeliverySuppliers = list.filter(s => {
+      const dt = s.deliveryTime || '';
+      const parts = dt.split('-');
+      const candidate = parts[1] || parts[0] || '';
+      const num = parseInt(candidate, 10);
+      return !isNaN(num) && num <= 14;
+    }).length;
+    return { totalSuppliers, avgRating, totalOrders, fastDeliverySuppliers };
+  };
+
+  const getTopSuppliers = (list, limit = 3) => {
+    return [...list].sort((a, b) => (b.totalOrders || 0) - (a.totalOrders || 0)).slice(0, limit);
+  };
+
+  const stats = computeStats(suppliers);
+  const topSuppliers = getTopSuppliers(suppliers, 3);
 
   const getRatingColor = (rating) => {
     if (rating >= 4.7) return '#4CAF50';
@@ -122,6 +164,11 @@ const Suppliers = () => {
           <Text style={styles.addButtonText}>+ Add Supplier</Text>
         </TouchableOpacity>
       </View>
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error loading suppliers: {error}</Text>
+        </View>
+      ) : null}
       
       {/* Supplier Statistics */}
       <ScrollView 
@@ -151,18 +198,24 @@ const Suppliers = () => {
       {/* Top Suppliers */}
       <Text style={styles.sectionTitle}>Top Suppliers by Orders</Text>
       {topSuppliers.map(supplier => (
-        <View key={supplier.id} style={styles.topSupplierCard}>
-          <View>
-            <Text style={styles.supplierName}>{supplier.companyName}</Text>
-            <Text style={styles.supplierLocation}>{supplier.location}</Text>
-            <Text style={styles.supplierSpecialization}>{supplier.specialization}</Text>
-          </View>
-          <View style={styles.supplierStats}>
-            <Text style={styles.supplierOrders}>{supplier.totalOrders} orders</Text>
-            <Text style={[styles.supplierRating, { color: getRatingColor(supplier.reliabilityRating) }]}>
-              {getRatingStars(supplier.reliabilityRating)} {supplier.reliabilityRating}
-            </Text>
-          </View>
+        <View key={supplier._id || supplier.supplierId || supplier.id} style={styles.topSupplierCard}>
+          {supplier ? (
+            <>
+              <View>
+                <Text style={styles.supplierName}>{supplier.companyName || 'Unknown'}</Text>
+                <Text style={styles.supplierLocation}>{supplier.location || 'Unknown'}</Text>
+                <Text style={styles.supplierSpecialization}>{supplier.specialization || 'Not Specified'}</Text>
+              </View>
+              <View style={styles.supplierStats}>
+                <Text style={styles.supplierOrders}>{supplier.totalOrders || 0} orders</Text>
+                <Text style={[styles.supplierRating, { color: getRatingColor(supplier.reliabilityRating) }]}>
+                  {getRatingStars(supplier.reliabilityRating)} {supplier.reliabilityRating || 0}
+                </Text>
+              </View>
+            </>
+          ) : (
+            <Text style={styles.errorText}>Invalid supplier data</Text>
+          )}
         </View>
       ))}
 
@@ -192,46 +245,59 @@ const Suppliers = () => {
 
       {/* Suppliers List */}
       {filteredSuppliers.map(supplier => (
-        <View key={supplier.id} style={styles.supplierCard}>
-          <View style={styles.supplierHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.companyName}>{supplier.companyName}</Text>
-              <Text style={styles.contactName}>{supplier.contactName}</Text>
-              <Text style={styles.supplierEmail}>{supplier.contactEmail}</Text>
-              <Text style={styles.supplierPhone}>{supplier.phone}</Text>
-            </View>
-            <View style={styles.supplierRatingContainer}>
-              <Text style={[styles.ratingNumber, { color: getRatingColor(supplier.reliabilityRating) }]}>
-                {supplier.reliabilityRating}
-              </Text>
-              <Text style={styles.ratingStars}>{getRatingStars(supplier.reliabilityRating)}</Text>
-              <Text style={styles.supplierSince}>Since: {supplier.establishedSince}</Text>
-            </View>
-          </View>
-
-          <View style={styles.supplierDetails}>
-            <Text style={styles.supplierAddress}>{supplier.address}</Text>
-            <Text style={styles.supplierSpec}>Specialization: {supplier.specialization}</Text>
-            <View style={styles.businessInfo}>
-              <Text style={styles.businessDetail}>Orders: {supplier.totalOrders}</Text>
-              <Text style={styles.businessDetail}>Delivery: {supplier.deliveryTime}</Text>
-              <Text style={styles.businessDetail}>Terms: {supplier.paymentTerms}</Text>
-            </View>
-          </View>
-
-          <View style={styles.supplierFooter}>
-            <View style={styles.certifications}>
-              <Text style={styles.certificationsTitle}>Certifications:</Text>
-              <View style={styles.certificationTags}>
-                {supplier.certifications.map((cert, index) => (
-                  <Text key={index} style={styles.certificationTag}>{cert}</Text>
-                ))}
+        <View key={supplier._id || supplier.supplierId || supplier.id} style={styles.supplierCard}>
+          {supplier ? (
+            <>
+              <View style={styles.supplierHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.companyName}>{supplier.companyName || 'Unknown Company'}</Text>
+                  <Text style={styles.contactName}>{supplier.contactName || 'No Contact'}</Text>
+                  <Text style={styles.supplierEmail}>{supplier.contactEmail || 'No Email'}</Text>
+                  <Text style={styles.supplierPhone}>{supplier.phone || 'No Phone'}</Text>
+                </View>
+                <View style={styles.supplierRatingContainer}>
+                  <Text style={[styles.ratingNumber, { color: getRatingColor(supplier.reliabilityRating) }]}>
+                    {supplier.reliabilityRating || 0}
+                  </Text>
+                  <Text style={styles.ratingStars}>{getRatingStars(supplier.reliabilityRating)}</Text>
+                  <Text style={styles.supplierSince}>Since: {supplier.establishedSince || 'Unknown'}</Text>
+                </View>
               </View>
-            </View>
-            <TouchableOpacity style={styles.supplierActionButton}>
-              <Text style={styles.supplierActionText}>Contact</Text>
-            </TouchableOpacity>
-          </View>
+
+              <View style={styles.supplierDetails}>
+                <Text style={styles.supplierAddress}>
+                  {typeof supplier.address === 'object' && supplier.address 
+                    ? `${supplier.address.city || ''} ${supplier.address.state || ''} ${supplier.address.country || ''}`.trim() || 'No Address'
+                    : supplier.address || 'No Address'}
+                </Text>
+                <Text style={styles.supplierSpec}>Specialization: {supplier.specialization || 'Not Specified'}</Text>
+                <View style={styles.businessInfo}>
+                  <Text style={styles.businessDetail}>Orders: {supplier.totalOrders || 0}</Text>
+                  <Text style={styles.businessDetail}>Delivery: {supplier.deliveryTime || 'Not Specified'}</Text>
+                  <Text style={styles.businessDetail}>Terms: {supplier.paymentTerms || 'Not Specified'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.supplierFooter}>
+                <View style={styles.certifications}>
+                  <Text style={styles.certificationsTitle}>Certifications:</Text>
+                  <View style={styles.certificationTags}>
+                    {Array.isArray(supplier.certifications) && supplier.certifications.length > 0 ? 
+                      supplier.certifications.map((cert, index) => (
+                        <Text key={index} style={styles.certificationTag}>{cert}</Text>
+                      )) : 
+                      <Text style={styles.certificationTag}>None</Text>
+                    }
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.supplierActionButton}>
+                  <Text style={styles.supplierActionText}>Contact</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <Text style={styles.errorText}>Invalid supplier data</Text>
+          )}
         </View>
       ))}
 
@@ -410,6 +476,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#757575',
     marginTop: 5,
+  },
+  errorContainer: {
+    padding: 12,
+    backgroundColor: '#ffe6e6',
+    borderRadius: 8,
+    margin: 12,
+  },
+  errorText: {
+    color: '#b00020',
+    fontSize: 13,
   },
   sectionTitle: {
     fontSize: 20,

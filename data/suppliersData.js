@@ -481,6 +481,9 @@ export const unsortedSuppliersData = [
   }
 ];
 
+// Sorted suppliersData for use throughout the app
+export const suppliersData = [...unsortedSuppliersData].sort((a, b) => a.companyName.localeCompare(b.companyName));
+
 // Helper functions for supplier data
 export const getTopSuppliersByOrders = (limit = 5) => {
   return [...suppliersData]
