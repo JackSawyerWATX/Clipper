@@ -11,7 +11,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo build",
+  "build": "expo build:web",
     "build:web": "expo build:web",
     "build:desktop": "expo build:web --platform web",
     "eject": "expo eject",
@@ -59,8 +59,8 @@
     "mobile"
   ],
   "author": {
-    "name": "Clipper Aviation",
-    "email": "support@clipper-aviation.com"
+    "name": "Jack Sawyer",
+    "email": "contact@jonathanfausset.com"
   },
   "license": "MIT",
   "homepage": "https://clipper-aviation.com"
