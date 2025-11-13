@@ -10,7 +10,7 @@ import { customersData as staticCustomers } from '../data/customersData.js';
 import { aircraftPartsInventory as staticInventory } from '../data/aircraftInventory.js';
 import { suppliersData as staticSuppliers } from '../data/suppliersData.js';
 import { invoicesData as staticInvoices } from '../data/invoicesData.js';
-import { ordersData as staticOrders } from '../data/shippingData.js';
+import { ordersData as staticOrders, shipmentsData as staticShipments } from '../data/shippingData.js';
 
 class DatabaseAdapter {
   // Order Operations
@@ -179,6 +179,22 @@ class DatabaseAdapter {
     if (options.limit) data = data.slice(0, options.limit);
     return data;
   }
+
+  // Shipment Operations
+  async getShipments(options = {}) {
+    if (await this.shouldUseMongoDB()) {
+      return await databaseService.getShipments({}, options);
+    }
+    let data = [...staticShipments];
+    if (options.sort) {
+      const sortKey = Object.keys(options.sort)[0];
+      const sortOrder = options.sort[sortKey];
+      data.sort((a, b) => (sortOrder === 1 ? (a[sortKey] > b[sortKey] ? 1 : -1) : (a[sortKey] < b[sortKey] ? 1 : -1)));
+    }
+    if (options.limit) data = data.slice(0, options.limit);
+    return data;
+  }
+
   async getSupplierById(id) {
     if (await this.shouldUseMongoDB()) return await databaseService.getSupplierById(id);
     return staticSuppliers.find(s => s.id === id || s._id === id);

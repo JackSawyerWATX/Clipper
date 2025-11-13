@@ -19,8 +19,7 @@ try {
   console.warn('Failed to import data for orders:', error);
 }
 
-const PlaceOrder = () => {
-  const [showOrderModal, setShowOrderModal] = useState(false);
+const PlaceOrder = ({ showOrderModal, setShowOrderModal }) => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
