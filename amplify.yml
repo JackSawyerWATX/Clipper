@@ -3,8 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci --cache .npm --prefer-offline
-        - nvm use 20
+        - npm ci
         - npm install --silent --global expo-cli
         - |-
           if [ -f yarn.lock ]; then
