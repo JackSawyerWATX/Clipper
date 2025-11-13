@@ -1,30 +1,59 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
-import { shipmentsData } from '../data/shippingData';
+import DatabaseAdapter from '../services/DatabaseAdapter';
 
 const Shipments = () => {
-  const [shipments] = useState(shipmentsData);
+  const [shipments, setShipments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const shipmentStatuses = ['All', 'Processing', 'Pending', 'Shipped', 'In Transit', 'Delivered'];
+  useEffect(() => {
+    const fetchShipments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await DatabaseAdapter.initialize();
+        const orders = await DatabaseAdapter.getOrders();
+        setShipments(orders);
+      } catch (err) {
+        setError('Failed to load shipments: ' + (err.message || err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchShipments();
+  }, []);
+
+  const shipmentStatuses = ['All', 'Processing', 'Pending', 'Shipped', 'In Transit', 'Delivered', 'Cancelled'];
   
-  const filteredShipments = shipments.filter(shipment => {
-    const matchesSearch = shipment.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         shipment.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         shipment.carrier.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredShipments = (shipments || []).filter(shipment => {
+    if (!shipment || typeof shipment !== 'object') return false;
+    // Accept both trackingNumber and shippingAddress/destination fields
+    const tracking = (shipment.trackingNumber || '').toString().toLowerCase();
+    const destination = (shipment.destination || shipment.shippingAddress || '').toString().toLowerCase();
+    const carrier = (shipment.carrier || '').toString().toLowerCase();
+    const matchesSearch = !searchTerm ||
+      tracking.includes(searchTerm.toLowerCase()) ||
+      destination.includes(searchTerm.toLowerCase()) ||
+      carrier.includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'All' || shipment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const getShipmentStats = () => ({
-    total: shipments.length,
-    processing: shipments.filter(s => s.status === 'Processing').length,
-    pending: shipments.filter(s => s.status === 'Pending').length,
-    shipped: shipments.filter(s => s.status === 'Shipped').length,
-    inTransit: shipments.filter(s => s.status === 'In Transit').length,
-    delivered: shipments.filter(s => s.status === 'Delivered').length,
-  });
+  const getShipmentStats = () => {
+    const safeShipments = shipments || [];
+    return {
+      total: safeShipments.length,
+      processing: safeShipments.filter(s => s.status === 'Processing').length,
+      pending: safeShipments.filter(s => s.status === 'Pending').length,
+      shipped: safeShipments.filter(s => s.status === 'Shipped').length,
+      inTransit: safeShipments.filter(s => s.status === 'In Transit').length,
+      delivered: safeShipments.filter(s => s.status === 'Delivered').length,
+    };
+  };
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -51,7 +80,12 @@ const Shipments = () => {
   return (
     <ScrollView style={styles.content}>
       <Text style={styles.title}>Shipments Tracking</Text>
-      
+      {loading && (
+        <View style={{ padding: 20 }}><Text>Loading shipments...</Text></View>
+      )}
+      {error && (
+        <View style={{ padding: 20 }}><Text style={{ color: 'red' }}>{error}</Text></View>
+      )}
       {/* Shipment Statistics */}
       <ScrollView 
         horizontal 
@@ -84,7 +118,6 @@ const Shipments = () => {
           <Text style={styles.statLabel}>Delivered</Text>
         </View>
       </ScrollView>
-
       {/* Search and Filter */}
       <TextInput
         style={styles.searchInput}
@@ -92,7 +125,6 @@ const Shipments = () => {
         value={searchTerm}
         onChangeText={setSearchTerm}
       />
-      
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
         {shipmentStatuses.map(status => (
           <TouchableOpacity
@@ -106,61 +138,92 @@ const Shipments = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
       <Text style={styles.resultCount}>{filteredShipments.length} shipments found</Text>
-
       {/* Shipments List */}
-      {filteredShipments.map(shipment => (
-        <View key={shipment.id} style={styles.shipmentCard}>
-          <View style={styles.shipmentHeader}>
-            <View>
-              <Text style={styles.trackingNumber}>{shipment.trackingNumber}</Text>
-              <Text style={styles.destination}>To: {shipment.destination}</Text>
-              <Text style={styles.itemCount}>{shipment.items.length} items • {shipment.carrier}</Text>
-            </View>
-            <View style={styles.shipmentStatusContainer}>
-              <Text style={[styles.shipmentStatus, { color: getStatusColor(shipment.status) }]}>
-                {shipment.status}
-              </Text>
-              <Text style={[styles.shipmentPriority, { backgroundColor: getPriorityColor(shipment.priority) }]}>
-                {shipment.priority}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.shipmentDetails}>
-            <Text style={styles.itemsTitle}>Items in Shipment:</Text>
-            <View style={styles.itemsList}>
-              {shipment.items.map((item, index) => (
-                <Text key={index} style={styles.itemTag}>
-                  {item}
-                </Text>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.shipmentFooter}>
-            <View style={styles.dateInfo}>
-              {shipment.estimatedDelivery && shipment.status !== 'Delivered' && (
-                <Text style={styles.estimatedDate}>
-                  Est. Delivery: {shipment.estimatedDelivery}
-                </Text>
-              )}
-              {shipment.deliveredDate && (
-                <Text style={styles.deliveredDate}>
-                  Delivered: {shipment.deliveredDate}
-                </Text>
-              )}
-            </View>
-            <TouchableOpacity style={styles.trackButton}>
-              <Text style={styles.trackButtonText}>Track Package</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
+      {/* Assign sequential order numbers to shipments with missing orderId */}
+      {(() => {
+        let orderCounter = 1;
+        const assignedNumbers = {};
+        filteredShipments.forEach(shipment => {
+          const idStr = (shipment.orderId || shipment.id || '').toString();
+          const match = idStr.match(/^ORD(\d{3})$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            assignedNumbers[num] = true;
+          }
+        });
+        const getNextOrderNum = () => {
+          while (assignedNumbers[orderCounter]) orderCounter++;
+          assignedNumbers[orderCounter] = true;
+          return orderCounter++;
+        };
+        return (
+          <>
+            {filteredShipments.map((shipment, idx) => {
+              let orderNum = shipment.orderId || shipment.id;
+              if (!orderNum || orderNum === 'N/A' || !/^ORD\d{3}$/.test(orderNum)) {
+                const nextNum = getNextOrderNum();
+                orderNum = `ORD${nextNum.toString().padStart(3, '0')}`;
+              }
+              return (
+                <View key={orderNum} style={styles.shipmentCard}>
+                  <View style={styles.shipmentHeader}>
+                    <View>
+                      <Text style={styles.trackingNumber}>{orderNum}</Text>
+                      {shipment.customerName && (
+                        <Text style={styles.companyName}>{shipment.customerName}</Text>
+                      )}
+                      <Text style={styles.destination}>To: {(shipment.destination || shipment.shippingAddress || 'N/A')}</Text>
+                      <Text style={styles.itemCount}>{shipment.items && shipment.items.length} items{shipment.carrier ? ` • ${shipment.carrier}` : ''}</Text>
+                    </View>
+                    <View style={styles.shipmentStatusContainer}>
+                      <Text style={[styles.shipmentStatus, { color: getStatusColor(shipment.status) }]}>
+                        {shipment.status}
+                      </Text>
+                      <Text style={[styles.shipmentPriority, { backgroundColor: getPriorityColor(shipment.priority) }]}>
+                        {shipment.priority}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.shipmentDetails}>
+                    <Text style={styles.itemsTitle}>Items in Shipment:</Text>
+                    <View style={styles.itemsList}>
+                      {shipment.items && shipment.items.map((item, index) => (
+                        <Text key={index} style={styles.itemTag}>
+                          {item.partName || item.partId || item}
+                          {item.quantity ? ` x${item.quantity}` : ''}
+                        </Text>
+                      ))}
+                    </View>
+                  </View>
+                  <View style={styles.shipmentFooter}>
+                    <View style={styles.dateInfo}>
+                      {shipment.estimatedDelivery && shipment.status !== 'Delivered' && (
+                        <Text style={styles.estimatedDate}>
+                          Est. Delivery: {shipment.estimatedDelivery}
+                        </Text>
+                      )}
+                      {shipment.deliveredDate && (
+                        <Text style={styles.deliveredDate}>
+                          Delivered: {shipment.deliveredDate}
+                        </Text>
+                      )}
+                    </View>
+                    <TouchableOpacity style={styles.trackButton}>
+                      <Text style={styles.trackButtonText}>Track Package</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </>
+        );
+      })()}
     </ScrollView>
   );
-};
+}
+
+export default Shipments;
 
 const styles = StyleSheet.create({
   content: {
@@ -359,4 +422,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Shipments;
